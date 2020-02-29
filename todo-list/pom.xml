@@ -9,6 +9,7 @@
     <version>0</version>
 
     <modules>
+        <module>todo-list-gateway</module>
         <module>todo-list-service</module>
     </modules>
 </project>
