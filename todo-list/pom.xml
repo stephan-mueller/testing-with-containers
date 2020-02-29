@@ -6,6 +6,7 @@
     <name>Todo-List with Testcontainers</name>
     <groupId>de.openknowledge.projects.showcase.testing-with-containers</groupId>
     <artifactId>todo-list</artifactId>
+    <packaging>pom</packaging>
     <version>0</version>
 
     <modules>
