@@ -65,9 +65,9 @@ public class DatasourceHealthCheckIT {
         .body("status", Matchers.equalTo("UP"))
         .rootPath("checks.find{ it.name == 'datasource' }")
         .body("status", Matchers.equalTo("UP"))
-        .body("data.driverName", Matchers.equalTo("H2 JDBC Driver"))
+        .body("data.driverName", Matchers.equalTo("PostgreSQL JDBC Driver"))
         .body("data.driverVersion", Matchers.notNullValue())
-        .body("data.databaseProductName", Matchers.equalTo("H2"))
+        .body("data.databaseProductName", Matchers.equalTo("PostgreSQL"))
         .body("data.databaseProductVersion", Matchers.notNullValue());
   }
 }
