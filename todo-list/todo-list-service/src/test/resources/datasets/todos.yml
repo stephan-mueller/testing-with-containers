@@ -1,0 +1,36 @@
+tab_todo:
+  - tod_id: 1
+    tod_title: clean fridge
+    tod_description: It's a mess
+    tod_duedate: 2018-01-01 12:34:56
+    tod_done: FALSE
+  - tod_id: 2
+    tod_title: clean bathroom
+    tod_description:
+    tod_duedate: 2018-01-02 10:30:00
+    tod_done: FALSE
+  - tod_id: 3
+    tod_title: bring out garbage
+    tod_description: plastic, paper
+    tod_duedate: 2018-01-03 15:00:00
+    tod_done: FALSE
+  - tod_id: 4
+    tod_title: go to supermarket
+    tod_description: buy milk & eggs
+    tod_duedate: 2018-01-05 9:45:00
+    tod_done: TRUE
+  - tod_id: 5
+    tod_title: write user stories
+    tod_description: including scenarios
+    tod_duedate: 2018-01-07 08:20:00
+    tod_done: FALSE
+  - tod_id: 6
+    tod_title: pay bills
+    tod_description:
+    tod_duedate: 2018-01-07 16:30:00
+    tod_done: FALSE
+  - tod_id: 7
+    tod_title: call mum
+    tod_description:
+    tod_duedate: 2018-01-01 18:00:00
+    tod_done: FALSE

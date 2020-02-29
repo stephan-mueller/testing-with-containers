@@ -1,0 +1,20 @@
+version: '3.7'
+services:
+
+  database:
+    image: postgres:12-alpine
+    ports:
+    - 5432:5432
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+    - ./src/main/resources/docker/1-schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+
+  service:
+    image: testing-with-containers/todo-list-service:0
+    ports:
+    - 9080:9080
+    depends_on:
+    - database

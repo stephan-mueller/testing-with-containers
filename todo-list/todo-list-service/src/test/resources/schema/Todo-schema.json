@@ -1,0 +1,36 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "title": "Full Todo",
+  "type": "object",
+  "description": "The full todo with identifier used as response object.",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "dueDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "done": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "dueDate",
+    "done"
+  ]
+}

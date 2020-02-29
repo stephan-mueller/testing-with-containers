@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "format": "date-time",
+      "type": "string",
+      "example": "2019-07-01T12:34:56.789+02:00"
+    },
+    "uuid": {
+      "type": "string",
+      "example": "55e6e986-767b-433a-9544-ddc8e25d67ab"
+    },
+    "code": {
+      "type": "string",
+      "example": "UNKNOWN_ERROR"
+    },
+    "message": {
+      "type": "string",
+      "example": "An unknown error occurred"
+    }
+  }
+}
