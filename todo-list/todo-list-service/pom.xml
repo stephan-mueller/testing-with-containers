@@ -379,11 +379,9 @@
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
                         <version>0.33.0</version>
-
                         <configuration>
                             <showLogs>true</showLogs>
                         </configuration>
-
                         <executions>
                             <execution>
                                 <id>start</id>
@@ -392,31 +390,9 @@
                                     <goal>build</goal>
                                     <goal>start</goal>
                                 </goals>
-
                                 <configuration>
                                     <showLogs>true</showLogs>
                                     <images>
-                                        <image>
-                                            <alias>service</alias>
-                                            <name>testing-with-postman/${project.build.finalName}:${project.version}</name>
-                                            <build>
-                                                <contextDir>${project.basedir}</contextDir>
-                                            </build>
-                                            <run>
-                                                <ports>
-                                                    <port>host.port:9080</port><!-- required for the http wait -->
-                                                </ports>
-                                                <wait>
-                                                    <http>
-                                                        <url>http://localhost:${host.port}/todo-list-service/api/todos</url>
-                                                    </http>
-                                                    <time>60000</time>
-                                                </wait>
-                                                <links>
-                                                    <link>database</link>
-                                                </links>
-                                            </run>
-                                        </image>
                                         <image>
                                             <alias>database</alias>
                                             <name>postgres:12-alpine</name>
@@ -437,10 +413,57 @@
                                                 </wait>
                                             </run>
                                         </image>
+                                        <image>
+                                            <alias>service</alias>
+                                            <name>testing-with-postman/${project.build.finalName}:${project.version}</name>
+                                            <build>
+                                                <contextDir>${project.basedir}</contextDir>
+                                            </build>
+                                            <run>
+                                                <ports>
+                                                    <port>host.port:9080</port><!-- required for the http wait -->
+                                                </ports>
+                                                <wait>
+                                                    <http>
+                                                        <url>http://localhost:${host.port}/todo-list-service/api/todos</url>
+                                                    </http>
+                                                    <time>60000</time>
+                                                </wait>
+                                                <dependsOn>
+                                                    <container>database</container>
+                                                </dependsOn>
+                                                <links>
+                                                    <link>database</link>
+                                                </links>
+                                            </run>
+                                        </image>
+                                        <image>
+                                            <alias>newman</alias>
+                                            <name>postman/newman:4.6.0-alpine</name>
+                                            <run>
+                                                <entrypoint>
+                                                    <arg>newman</arg>
+                                                    <arg>run</arg>
+                                                    <arg>todo-list-service.postman_collection.json</arg>
+                                                    <arg>--environment</arg>
+                                                    <arg>todo-list-service.postman_environment.json</arg>
+                                                </entrypoint>
+                                                <volumes>
+                                                    <bind>${project.basedir}/postman:/etc/newman</bind>
+                                                </volumes>
+                                                <dependsOn>
+                                                    <container>database</container>
+                                                    <container>service</container>
+                                                </dependsOn>
+                                                <links>
+                                                    <link>database</link>
+                                                    <link>service</link>
+                                                </links>
+                                            </run>
+                                        </image>
                                     </images>
                                 </configuration>
                             </execution>
-
                             <execution>
                                 <id>stop</id>
                                 <phase>post-integration-test</phase>
