@@ -384,7 +384,7 @@
                         </configuration>
                         <executions>
                             <execution>
-                                <id>start</id>
+                                <id>postman-tests</id>
                                 <phase>pre-integration-test</phase>
                                 <goals>
                                     <goal>build</goal>
@@ -463,13 +463,16 @@
                                                     <link>database</link>
                                                     <link>service</link>
                                                 </links>
+                                                <wait>
+                                                    <exit>0</exit>
+                                                </wait>
                                             </run>
                                         </image>
                                     </images>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>stop</id>
+                                <id>stop-postman-containers</id>
                                 <phase>post-integration-test</phase>
                                 <goals>
                                     <goal>stop</goal>
