@@ -1497,15 +1497,9 @@
 									"script": {
 										"id": "25be106d-adb9-4586-8263-cb058b31542e",
 										"exec": [
-											"pm.test(\"Response code is 'ok'\", function () {",
-											"    pm.response.to.have.status(200);",
-											"    pm.response.to.be.ok;",
-											"    pm.response.to.be.withBody;",
-											"    pm.response.to.be.json;    ",
-											"});",
-											"",
-											"pm.test(\"Content-Type is present\", function () {",
-											"    pm.response.to.have.header(\"Content-Type\");",
+											"pm.test(\"Response code is 'no_content'\", function () {",
+											"    pm.response.to.have.status(204);",
+											"    pm.response.to.be.success;",
 											"});",
 											"",
 											"pm.test('Schema is valid', function() {",
