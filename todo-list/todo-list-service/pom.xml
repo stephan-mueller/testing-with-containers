@@ -391,7 +391,6 @@
                                     <goal>start</goal>
                                 </goals>
                                 <configuration>
-                                    <showLogs>true</showLogs>
                                     <images>
                                         <image>
                                             <alias>database</alias>
