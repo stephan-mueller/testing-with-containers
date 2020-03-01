@@ -447,9 +447,14 @@
                                                     <arg>todo-list-service.postman_collection.json</arg>
                                                     <arg>--environment</arg>
                                                     <arg>todo-list-service.postman_environment.json</arg>
+                                                    <arg>--reporters=cli,junit</arg>
+                                                    <arg>--reporter-junit-export=/results</arg>
                                                 </entrypoint>
                                                 <volumes>
-                                                    <bind>${project.basedir}/postman:/etc/newman</bind>
+                                                    <bind>
+                                                        <volume>${project.basedir}/postman:/etc/newman</volume>
+                                                        <volume>${project.basedir}/target/postman:/results</volume>
+                                                    </bind>
                                                 </volumes>
                                                 <dependsOn>
                                                     <container>database</container>
