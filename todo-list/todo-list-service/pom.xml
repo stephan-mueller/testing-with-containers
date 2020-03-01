@@ -399,46 +399,38 @@
                                         <image>
                                             <alias>service</alias>
                                             <name>testing-with-postman/${project.build.finalName}:${project.version}</name>
-
                                             <build>
                                                 <contextDir>${project.basedir}</contextDir>
                                             </build>
-
                                             <run>
                                                 <ports>
-                                                    <port>9988:9080</port><!-- TODO: use dynamic port -->
+                                                    <port>host.port:9080</port><!-- required for the http wait -->
                                                 </ports>
-
                                                 <wait>
                                                     <http>
-                                                        <url>http://localhost:9988/todo-list-service/api/todos</url>
+                                                        <url>http://localhost:${host.port}/todo-list-service/api/todos</url>
                                                     </http>
                                                     <time>60000</time>
                                                 </wait>
-
                                                 <links>
                                                     <link>database</link>
                                                 </links>
                                             </run>
                                         </image>
-
                                         <image>
                                             <alias>database</alias>
                                             <name>postgres:12-alpine</name>
-
                                             <run>
                                                 <env>
                                                     <POSTGRES_DB>postgres</POSTGRES_DB>
                                                     <POSTGRES_USER>postgres</POSTGRES_USER>
                                                     <POSTGRES_PASSWORD>postgres</POSTGRES_PASSWORD>
                                                 </env>
-
                                                 <volumes>
                                                     <bind>
                                                         <volume>${project.basedir}/src/main/resources/docker/1-schema.sql:/docker-entrypoint-initdb.d/1-schema.sql</volume>
                                                     </bind>
                                                 </volumes>
-
                                                 <wait>
                                                     <log>.*server started.*</log>
                                                     <time>20000</time>
