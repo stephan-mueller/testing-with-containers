@@ -16,8 +16,6 @@
 package de.openknowledge.projects.helloworld;
 
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.images.builder.ImageFromDockerfile;
 
 import java.net.URI;
 
@@ -32,9 +30,9 @@ import cucumber.api.event.TestRunStarted;
 /**
  * Base class which starts a testcontainer for the cucumber test.
  */
-public class HelloWorldCucumberTestContainerBaseClass implements ConcurrentEventListener {
+public class HelloWorldResourceCucumberTestContainerBaseClass implements ConcurrentEventListener {
 
-  private static final GenericContainer<?> container = new GenericContainer("testing-with-containers/hello-world:0")
+  private static final GenericContainer<?> CONTAINER = new GenericContainer("testing-with-containers/hello-world:0")
       .withExposedPorts(9080);
 
   private static URI uri;
@@ -51,21 +49,21 @@ public class HelloWorldCucumberTestContainerBaseClass implements ConcurrentEvent
   };
 
   private void beforeAll() {
-    container.start();
+    CONTAINER.start();
   }
 
   private void setUpUri() {
     uri = UriBuilder.fromPath("hello-world")
         .scheme("http")
-        .host(container.getContainerIpAddress())
-        .port(container.getFirstMappedPort())
+        .host(CONTAINER.getContainerIpAddress())
+        .port(CONTAINER.getFirstMappedPort())
         .build();
   }
 
   private EventHandler<TestRunFinished> teardown = event -> afterAll();
 
   private void afterAll() {
-    container.stop();
+    CONTAINER.stop();
   }
 
   public static URI getUri() {

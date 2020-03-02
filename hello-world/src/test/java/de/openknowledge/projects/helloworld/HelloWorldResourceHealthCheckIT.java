@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -40,7 +39,7 @@ public class HelloWorldResourceHealthCheckIT {
   private static final Logger LOG = LoggerFactory.getLogger(HelloWorldResourceHealthCheckIT.class);
 
   @Container
-  private static final GenericContainer<?> container = new GenericContainer("testing-with-containers/hello-world:0")
+  private static final GenericContainer<?> CONTAINER = new GenericContainer("testing-with-containers/hello-world:0")
       .withExposedPorts(9080)
       .withLogConsumer(new Slf4jLogConsumer(LOG));
 
@@ -51,8 +50,8 @@ public class HelloWorldResourceHealthCheckIT {
         .when()
         .get(UriBuilder.fromPath("health")
             .scheme("http")
-            .host(container.getContainerIpAddress())
-            .port(container.getFirstMappedPort())
+            .host(CONTAINER.getContainerIpAddress())
+            .port(CONTAINER.getFirstMappedPort())
             .build())
         .then()
         .contentType(MediaType.APPLICATION_JSON)

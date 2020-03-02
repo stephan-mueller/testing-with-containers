@@ -45,7 +45,7 @@ public class TodoResourceHealthCheckIT {
   private static final Logger LOG = LoggerFactory.getLogger(TodoResourceHealthCheckIT.class);
 
   @Container
-  public static DockerComposeContainer environment = ComposeContainer.newContainer()
+  private static final DockerComposeContainer ENVIRONMENT = ComposeContainer.newContainer()
       .withLogConsumer(COMPOSE_SERVICENAME_DATABASE, new Slf4jLogConsumer(LOG))
       .withLogConsumer(COMPOSE_SERVICENAME_SERVICE, new Slf4jLogConsumer(LOG));
 
@@ -56,8 +56,8 @@ public class TodoResourceHealthCheckIT {
         .when()
         .get(UriBuilder.fromPath("health")
                  .scheme("http")
-                 .host(environment.getServiceHost("service", SERVICE_PORT))
-                 .port(environment.getServicePort("service", SERVICE_PORT))
+                 .host(ENVIRONMENT.getServiceHost("service", SERVICE_PORT))
+                 .port(ENVIRONMENT.getServicePort("service", SERVICE_PORT))
                  .build())
         .then()
         .contentType(MediaType.APPLICATION_JSON)

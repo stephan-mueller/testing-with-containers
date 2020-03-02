@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions
  * and limitations under the License.
  */
-package de.openknowledge.projects.todolist.service.infrastructure.microprofiles.health;
-
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_DATABASE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_SERVICE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.SERVICE_PORT;
-
-import de.openknowledge.projects.todolist.service.ComposeContainer;
+package de.openknowledge.projects.helloworld;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -37,17 +31,17 @@ import javax.ws.rs.core.UriBuilder;
 import io.restassured.RestAssured;
 
 /**
- * Integration test for the health check {@link DatasourceHealthCheck}.
+ * Integration test for the health check {@link ApplicationHealthCheck}.
  */
 @Testcontainers
-public class DatasourceHealthCheckIT {
+public class ApplicationHealthCheckIT {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DatasourceHealthCheckIT.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ApplicationHealthCheckIT.class);
 
   @Container
-  public static DockerComposeContainer environment = ComposeContainer.newContainer()
-      .withLogConsumer(COMPOSE_SERVICENAME_DATABASE, new Slf4jLogConsumer(LOG))
-      .withLogConsumer(COMPOSE_SERVICENAME_SERVICE, new Slf4jLogConsumer(LOG));
+  private static final GenericContainer<?> CONTAINER = new GenericContainer("testing-with-containers/hello-world:0")
+      .withExposedPorts(9080)
+      .withLogConsumer(new Slf4jLogConsumer(LOG));
 
   @Test
   public void checkHealth() {
@@ -56,18 +50,17 @@ public class DatasourceHealthCheckIT {
         .when()
         .get(UriBuilder.fromPath("health")
                  .scheme("http")
-                 .host(environment.getServiceHost("service", SERVICE_PORT))
-                 .port(environment.getServicePort("service", SERVICE_PORT))
+                 .host(CONTAINER.getContainerIpAddress())
+                 .port(CONTAINER.getFirstMappedPort())
                  .build())
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Response.Status.OK.getStatusCode())
         .body("status", Matchers.equalTo("UP"))
-        .rootPath("checks.find{ it.name == 'datasource' }")
+        .rootPath("checks.find{ it.name == 'application' }")
         .body("status", Matchers.equalTo("UP"))
-        .body("data.driverName", Matchers.equalTo("H2 JDBC Driver"))
-        .body("data.driverVersion", Matchers.notNullValue())
-        .body("data.databaseProductName", Matchers.equalTo("H2"))
-        .body("data.databaseProductVersion", Matchers.notNullValue());
+        .body("data.name", Matchers.equalTo("hello-world"))
+        .body("data.version", Matchers.notNullValue())
+        .body("data.createdAt", Matchers.notNullValue());
   }
 }

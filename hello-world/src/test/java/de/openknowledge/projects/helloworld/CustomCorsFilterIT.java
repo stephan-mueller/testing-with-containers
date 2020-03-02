@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions
  * and limitations under the License.
  */
-package de.openknowledge.projects.todolist.service.infrastructure.web.cors;
-
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_DATABASE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_SERVICE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.SERVICE_PORT;
-
-import de.openknowledge.projects.todolist.service.ComposeContainer;
+package de.openknowledge.projects.helloworld;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -45,24 +39,24 @@ public class CustomCorsFilterIT {
   private static final Logger LOG = LoggerFactory.getLogger(CustomCorsFilterIT.class);
 
   @Container
-  private static final DockerComposeContainer ENVIRONMENT = ComposeContainer.newContainer()
-      .withLogConsumer(COMPOSE_SERVICENAME_DATABASE, new Slf4jLogConsumer(LOG))
-      .withLogConsumer(COMPOSE_SERVICENAME_SERVICE, new Slf4jLogConsumer(LOG));
+  private static final GenericContainer<?> CONTAINER = new GenericContainer("testing-with-containers/hello-world:0")
+      .withExposedPorts(9080)
+      .withLogConsumer(new Slf4jLogConsumer(LOG));
 
   @Test
   public void checkCorsHeader() {
-    String serviceHost = ENVIRONMENT.getServiceHost("service", SERVICE_PORT);
-    Integer servicePort = ENVIRONMENT.getServicePort("service", SERVICE_PORT);
+    String host = CONTAINER.getContainerIpAddress();
+    Integer port = CONTAINER.getFirstMappedPort();
 
     RestAssured.given()
-        .header("ORIGIN", serviceHost + ":" + servicePort)
+        .header("ORIGIN", host + ":" + port)
         .when()
-        .options(UriBuilder.fromPath("todo-list-service")
+        .options(UriBuilder.fromPath("hello-world")
                      .path("api")
                      .path("todos")
                      .scheme("http")
-                     .host(serviceHost)
-                     .port(servicePort)
+                     .host(host)
+                     .port(port)
                      .build())
         .then()
         .statusCode(Response.Status.OK.getStatusCode())

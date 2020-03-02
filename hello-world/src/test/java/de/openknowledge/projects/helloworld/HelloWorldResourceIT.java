@@ -42,7 +42,7 @@ public class HelloWorldResourceIT {
   private static final Logger LOG = LoggerFactory.getLogger(HelloWorldResourceIT.class);
 
   @Container
-  private static final GenericContainer<?> container = new GenericContainer("testing-with-containers/hello-world:0")
+  private static final GenericContainer<?> CONTAINER = new GenericContainer("testing-with-containers/hello-world:0")
       .withExposedPorts(9080)
       .withLogConsumer(new Slf4jLogConsumer(LOG));
 
@@ -52,8 +52,8 @@ public class HelloWorldResourceIT {
   public static void setUpUri() {
     uri = UriBuilder.fromPath("hello-world")
         .scheme("http")
-        .host(container.getContainerIpAddress())
-        .port(container.getFirstMappedPort())
+        .host(CONTAINER.getContainerIpAddress())
+        .port(CONTAINER.getFirstMappedPort())
         .build();
   }
 

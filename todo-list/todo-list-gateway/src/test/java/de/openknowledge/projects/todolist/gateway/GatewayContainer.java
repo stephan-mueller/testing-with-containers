@@ -32,7 +32,7 @@ public final class GatewayContainer {
       .withExposedPorts(EXPOSED_PORT)
       .waitingFor(Wait.forListeningPort());
 
-  public GatewayContainer() {
+  private GatewayContainer() {
     super();
   }
 

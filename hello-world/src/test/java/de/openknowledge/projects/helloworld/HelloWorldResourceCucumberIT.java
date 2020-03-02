@@ -23,10 +23,10 @@ import io.cucumber.junit.CucumberOptions;
 /**
  * Cucumber-Test for the resource {@link HelloWorldResource}.
  *
- * @see  HelloWorldCucumberSteps,
- * @see  HelloWorldCucumberTestContainerBaseClass
+ * @see HelloWorldResourceCucumberSteps
+ * @see HelloWorldResourceCucumberTestContainerBaseClass
  */
 @RunWith(Cucumber.class)
-@CucumberOptions(plugin = { "pretty", "de.openknowledge.projects.helloworld.HelloWorldCucumberTestContainerBaseClass"}, features = "src/test/resources/it/feature")
-public class HelloWorldCucumberIT {
+@CucumberOptions(plugin = { "pretty", "de.openknowledge.projects.helloworld.HelloWorldResourceCucumberTestContainerBaseClass"}, features = "src/test/resources/it/feature")
+public class HelloWorldResourceCucumberIT {
 }

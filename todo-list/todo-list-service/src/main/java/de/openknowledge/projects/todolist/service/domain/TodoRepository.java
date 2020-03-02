@@ -69,7 +69,7 @@ public class TodoRepository implements Serializable {
   }
 
   public Optional<Todo> find(final Long id)  {
-    LOG.debug("Locating todo {} with id {}", id);
+    LOG.debug("Locating todo with id {}", id);
     return Optional.ofNullable(entityManager.find(Todo.class, id));
   }
 

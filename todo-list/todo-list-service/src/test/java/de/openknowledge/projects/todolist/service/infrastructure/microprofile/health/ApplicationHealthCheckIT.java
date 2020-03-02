@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions
  * and limitations under the License.
  */
-package de.openknowledge.projects.todolist.service.infrastructure.web.cors;
+package de.openknowledge.projects.todolist.service.infrastructure.microprofile.health;
 
 import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_DATABASE;
 import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_SERVICE;
@@ -30,19 +30,19 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import io.restassured.RestAssured;
 
 /**
- * Integration test for the custom CORS filter (configured in the server.xml)
+ * Integration test for the health check {@link DatasourceHealthCheck}.
  */
 @Testcontainers
-public class CustomCorsFilterIT {
+public class ApplicationHealthCheckIT {
 
-  private static final Logger LOG = LoggerFactory.getLogger(CustomCorsFilterIT.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ApplicationHealthCheckIT.class);
 
   @Container
   private static final DockerComposeContainer ENVIRONMENT = ComposeContainer.newContainer()
@@ -50,24 +50,23 @@ public class CustomCorsFilterIT {
       .withLogConsumer(COMPOSE_SERVICENAME_SERVICE, new Slf4jLogConsumer(LOG));
 
   @Test
-  public void checkCorsHeader() {
-    String serviceHost = ENVIRONMENT.getServiceHost("service", SERVICE_PORT);
-    Integer servicePort = ENVIRONMENT.getServicePort("service", SERVICE_PORT);
-
+  public void checkHealth() {
     RestAssured.given()
-        .header("ORIGIN", serviceHost + ":" + servicePort)
+        .accept(MediaType.APPLICATION_JSON)
         .when()
-        .options(UriBuilder.fromPath("todo-list-service")
-                     .path("api")
-                     .path("todos")
-                     .scheme("http")
-                     .host(serviceHost)
-                     .port(servicePort)
-                     .build())
+        .get(UriBuilder.fromPath("health")
+                 .scheme("http")
+                 .host(ENVIRONMENT.getServiceHost("service", SERVICE_PORT))
+                 .port(ENVIRONMENT.getServicePort("service", SERVICE_PORT))
+                 .build())
         .then()
+        .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Response.Status.OK.getStatusCode())
-        .header("Access-Control-Allow-Credentials", "true")
-        .header("Access-Control-Allow-Origin", Matchers.notNullValue())
-        .header(HttpHeaders.ALLOW, "DELETE,POST,GET,PUT,OPTIONS,HEAD");
+        .body("status", Matchers.equalTo("UP"))
+        .rootPath("checks.find{ it.name == 'application' }")
+        .body("status", Matchers.equalTo("UP"))
+        .body("data.name", Matchers.equalTo("todo-list-service"))
+        .body("data.version", Matchers.notNullValue())
+        .body("data.createdAt", Matchers.notNullValue());
   }
 }

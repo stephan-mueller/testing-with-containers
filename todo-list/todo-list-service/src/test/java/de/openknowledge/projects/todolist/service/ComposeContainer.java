@@ -16,6 +16,7 @@
 package de.openknowledge.projects.todolist.service;
 
 import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 
@@ -30,9 +31,9 @@ public final class ComposeContainer {
   public static final int DATABASE_PORT = 5432;
   public static final int SERVICE_PORT = 9080;
 
-  private DockerComposeContainer environment = new DockerComposeContainer(new File("./docker-compose.yml"))
-      .withExposedService(COMPOSE_SERVICENAME_DATABASE, DATABASE_PORT)
-      .withExposedService(COMPOSE_SERVICENAME_SERVICE, SERVICE_PORT);
+  private final DockerComposeContainer environment = new DockerComposeContainer(new File("./docker-compose.yml"))
+      .withExposedService(COMPOSE_SERVICENAME_DATABASE, DATABASE_PORT, Wait.forLogMessage(".*server started.*", 1))
+      .withExposedService(COMPOSE_SERVICENAME_SERVICE, SERVICE_PORT, Wait.forHttp("/todo-list-service/api/todos"));
 
   private ComposeContainer() {
     super();

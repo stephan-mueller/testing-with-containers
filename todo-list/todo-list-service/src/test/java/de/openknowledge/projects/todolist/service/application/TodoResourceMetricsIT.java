@@ -48,14 +48,14 @@ public class TodoResourceMetricsIT {
   private static final Logger LOG = LoggerFactory.getLogger(TodoResourceMetricsIT.class);
 
   @Container
-  public static DockerComposeContainer environment = ComposeContainer.newContainer()
+  private static final DockerComposeContainer ENVIRONMENT = ComposeContainer.newContainer()
       .withLogConsumer(COMPOSE_SERVICENAME_DATABASE, new Slf4jLogConsumer(LOG))
       .withLogConsumer(COMPOSE_SERVICENAME_SERVICE, new Slf4jLogConsumer(LOG));
 
   @Test
   public void getApplicationMetrics() {
-    String serviceHost = environment.getServiceHost("service", SERVICE_PORT);
-    Integer servicePort = environment.getServicePort("service", SERVICE_PORT);
+    String serviceHost = ENVIRONMENT.getServiceHost("service", SERVICE_PORT);
+    Integer servicePort = ENVIRONMENT.getServicePort("service", SERVICE_PORT);
 
     RestAssured.given()
         .accept(MediaType.TEXT_PLAIN)

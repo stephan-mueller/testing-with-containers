@@ -41,7 +41,7 @@ public class CustomCorsFilterIT {
   private static final Logger LOG = LoggerFactory.getLogger(CustomCorsFilterIT.class);
 
   @Container
-  private static final GenericContainer<?> GATEWAY = new GatewayContainer().newContainer()
+  private static final GenericContainer<?> GATEWAY = GatewayContainer.newContainer()
       .withLogConsumer(new Slf4jLogConsumer(LOG));
 
   @Test

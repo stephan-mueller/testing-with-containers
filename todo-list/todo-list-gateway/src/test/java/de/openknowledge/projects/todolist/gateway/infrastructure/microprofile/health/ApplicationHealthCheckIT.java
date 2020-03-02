@@ -43,7 +43,7 @@ public class ApplicationHealthCheckIT {
   private static final Logger LOG = LoggerFactory.getLogger(ApplicationHealthCheckIT.class);
 
   @Container
-  private static final GenericContainer<?> GATEWAY = new GatewayContainer().newContainer()
+  private static final GenericContainer<?> GATEWAY = GatewayContainer.newContainer()
       .withLogConsumer(new Slf4jLogConsumer(LOG));
 
   @Test

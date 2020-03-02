@@ -69,7 +69,7 @@ public class TodoResourceIT {
       .withLogConsumer(new Slf4jLogConsumer(LOG));
 
   @Container
-  private static final GenericContainer<?> GATEWAY = new GatewayContainer().newContainer()
+  private static final GenericContainer<?> GATEWAY = GatewayContainer.newContainer()
       .dependsOn(MOCKSERVER)
       .withNetwork(NETWORK)
       .withEnv(ENV_SERVICE_HOST, MOCKSERVER_NETWORK_ALIAS)

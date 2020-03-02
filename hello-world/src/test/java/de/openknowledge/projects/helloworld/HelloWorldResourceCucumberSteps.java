@@ -30,9 +30,9 @@ import io.cucumber.java.en.When;
 import io.restassured.RestAssured;
 
 /**
- * Step Definitions for the cucumber test {@link HelloWorldCucumberIT}.
+ * Step Definitions for the cucumber test {@link HelloWorldResourceCucumberIT}.
  */
-public class HelloWorldCucumberSteps {
+public class HelloWorldResourceCucumberSteps {
 
   private URI uri;
 
@@ -42,7 +42,7 @@ public class HelloWorldCucumberSteps {
 
   @Before
   public void beforeScenario() {
-    uri = HelloWorldCucumberTestContainerBaseClass.getUri();
+    uri = HelloWorldResourceCucumberTestContainerBaseClass.getUri();
   }
 
   @Given("^a user$")
