@@ -46,8 +46,8 @@
         <version.glassfish-javax-el>3.0.1-b09</version.glassfish-javax-el>
         <version.hibernate-validator>6.1.2.Final</version.hibernate-validator>
 
-        <liberty.var.default.http.port>19080</liberty.var.default.http.port>
-        <liberty.var.default.https.port>19443</liberty.var.default.https.port>
+        <liberty.var.default.http.port>9080</liberty.var.default.http.port>
+        <liberty.var.default.https.port>9443</liberty.var.default.https.port>
         <liberty.var.app.context.root>${project.artifactId}</liberty.var.app.context.root>
     </properties>
 

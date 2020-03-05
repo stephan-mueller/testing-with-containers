@@ -17,9 +17,6 @@ package de.openknowledge.projects.todolist.gateway.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import de.openknowledge.projects.todolist.gateway.application.TodoApplicationService;
-import de.openknowledge.projects.todolist.gateway.application.TodoListServiceClient;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,13 +27,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.ws.rs.core.Response;
 
 /**
- * Test class for the service {@link TodoApplicationService}.
+ * Test class for the service {@link TodoGatewayApplicationService}.
  */
 @ExtendWith(MockitoExtension.class)
-public class TodoApplicationServiceTest {
+public class TodoGatewayApplicationServiceTest {
 
   @InjectMocks
-  private TodoApplicationService service;
+  private TodoGatewayApplicationService service;
 
   @Mock
   private TodoListServiceClient client;

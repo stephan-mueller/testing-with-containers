@@ -34,13 +34,13 @@ import javax.ws.rs.core.UriBuilder;
 import io.restassured.RestAssured;
 
 /**
- * Integration test for the health check {@link TodoResourceHealthCheck}.
+ * Integration test for the health check {@link TodoGatewayResourceHealthCheck}.
  */
 @Disabled
 @Testcontainers
-public class TodoResourceHealthCheckIT {
+public class TodoGatewayResourceHealthCheckIT {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TodoResourceHealthCheckIT.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TodoGatewayResourceHealthCheckIT.class);
 
   @Container
   private static final GenericContainer<?> GATEWAY = GatewayContainer.newContainer()
@@ -60,7 +60,7 @@ public class TodoResourceHealthCheckIT {
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Response.Status.OK.getStatusCode())
         .body("status", Matchers.equalTo("UP"))
-        .rootPath("checks.find{ it.name == 'TodoResource' }")
+        .rootPath("checks.find{ it.name == 'TodoGatewayResource' }")
         .body("status", Matchers.equalTo("UP"));
   }
 }

@@ -32,11 +32,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 /**
- * Health check for the resource {@link TodoResource}.
+ * Health check for the resource {@link TodoGatewayResource}.
  */
 @Readiness
 @ApplicationScoped
-public class TodoResourceHealthCheck implements HealthCheck {
+public class TodoGatewayResourceHealthCheck implements HealthCheck {
 
   @Inject
   @ConfigProperty(name = "default.http.port")
@@ -48,7 +48,7 @@ public class TodoResourceHealthCheck implements HealthCheck {
 
   @Override
   public HealthCheckResponse call() {
-    HealthCheckResponseBuilder builder = HealthCheckResponse.named(TodoResource.class.getSimpleName());
+    HealthCheckResponseBuilder builder = HealthCheckResponse.named(TodoGatewayResource.class.getSimpleName());
 
     Response response = ClientBuilder.newClient()
         .target(getResourceUri())
@@ -70,7 +70,7 @@ public class TodoResourceHealthCheck implements HealthCheck {
   private URI getResourceUri() {
     return UriBuilder.fromPath(contextRoot)
         .path(JaxRsActivator.class.getAnnotation(ApplicationPath.class).value())
-        .path(TodoResource.class.getAnnotation(Path.class).value())
+        .path(TodoGatewayResource.class.getAnnotation(Path.class).value())
         .scheme("http")
         .host("localhost")
         .port(port)

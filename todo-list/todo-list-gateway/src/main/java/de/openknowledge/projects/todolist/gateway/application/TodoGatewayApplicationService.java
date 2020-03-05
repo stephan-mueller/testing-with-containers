@@ -28,9 +28,9 @@ import javax.ws.rs.core.Response;
  * Service that provides access to the
  */
 @Service
-public class TodoApplicationService {
+public class TodoGatewayApplicationService {
 
-  private static Logger LOG = LoggerFactory.getLogger(TodoApplicationService.class);
+  private static Logger LOG = LoggerFactory.getLogger(TodoGatewayApplicationService.class);
 
   @Inject
   @RestClient

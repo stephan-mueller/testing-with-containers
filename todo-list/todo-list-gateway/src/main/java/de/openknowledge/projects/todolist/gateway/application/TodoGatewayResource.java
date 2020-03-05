@@ -34,13 +34,13 @@ import javax.ws.rs.core.Response;
  * A resource that provides access to the todo-list-service.
  */
 @Path("todos")
-@Timed(name = "todos", unit = MetricUnits.MILLISECONDS, description = "Metrics of the TodoResource", absolute = true)
-public class TodoResource {
+@Timed(name = "todos", unit = MetricUnits.MILLISECONDS, description = "Metrics of the TodoGatewayResource", absolute = true)
+public class TodoGatewayResource {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TodoResource.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TodoGatewayResource.class);
 
   @Inject
-  private TodoApplicationService repository;
+  private TodoGatewayApplicationService repository;
 
   @POST
   public Response createTodo(final String newTodo) {

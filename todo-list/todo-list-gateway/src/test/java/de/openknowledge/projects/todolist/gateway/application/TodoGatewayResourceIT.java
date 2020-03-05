@@ -50,12 +50,12 @@ import io.restassured.RestAssured;
 import io.restassured.module.jsv.JsonSchemaValidator;
 
 /**
- * Integration test class for the resource {@link TodoResource}.
+ * Integration test class for the resource {@link TodoGatewayResource}.
  */
 @Testcontainers
-public class TodoResourceIT {
+public class TodoGatewayResourceIT {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TodoResourceIT.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TodoGatewayResourceIT.class);
 
   private static final String MOCKSERVER_NETWORK_ALIAS = "mockserver";
   private static final Integer MOCKSERVER_EXPOSED_PORT = 1080;

@@ -17,9 +17,6 @@ package de.openknowledge.projects.todolist.gateway.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import de.openknowledge.projects.todolist.gateway.application.TodoApplicationService;
-import de.openknowledge.projects.todolist.gateway.application.TodoResource;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,16 +29,16 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 /**
- * Test class for the resource {@link TodoResource}.
+ * Test class for the resource {@link TodoGatewayResource}.
  */
 @ExtendWith(MockitoExtension.class)
-public class TodoResourceTest {
+public class TodoGatewayResourceTest {
 
   @InjectMocks
-  private TodoResource resource;
+  private TodoGatewayResource resource;
 
   @Mock
-  private TodoApplicationService service;
+  private TodoGatewayApplicationService service;
 
   @Mock
   private Response response;
