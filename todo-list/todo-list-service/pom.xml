@@ -47,11 +47,15 @@
         <version.apache-cxf>3.3.4</version.apache-cxf>
         <version.eclipselink>2.7.3</version.eclipselink>
         <version.glassfish-javax-el>3.0.1-b09</version.glassfish-javax-el>
+        <version.glassfish-javax-json>1.1.4</version.glassfish-javax-json>
         <version.hibernate-validator>6.1.2.Final</version.hibernate-validator>
 
         <liberty.var.default.http.port>9080</liberty.var.default.http.port>
         <liberty.var.default.https.port>9443</liberty.var.default.https.port>
         <liberty.var.app.context.root>${project.artifactId}</liberty.var.app.context.root>
+
+        <!-- Used by fabric8io docker-maven-plugin, see: https://dmp.fabric8.io/#build-buildargs -->
+        <docker.buildArg.JAR_FILE>${project.build.finalName}.jar</docker.buildArg.JAR_FILE>
     </properties>
 
     <build>
@@ -131,7 +135,7 @@
                     <repository>testing-with-containers/${project.build.finalName}</repository>
                     <tag>${project.version}</tag>
                     <buildArgs>
-                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+                        <JAR_FILE>${docker.buildArg.JAR_FILE}</JAR_FILE>
                     </buildArgs>
                     <skipDockerInfo>true</skipDockerInfo>
                 </configuration>
@@ -360,10 +364,132 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>${version.glassfish-javax-json}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>${version.hibernate-validator}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>postman</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>0.33.0</version>
+                        <configuration>
+                            <showLogs>true</showLogs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>postman-tests</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <images>
+                                        <image>
+                                            <alias>database</alias>
+                                            <name>postgres:12-alpine</name>
+                                            <run>
+                                                <env>
+                                                    <POSTGRES_DB>postgres</POSTGRES_DB>
+                                                    <POSTGRES_USER>postgres</POSTGRES_USER>
+                                                    <POSTGRES_PASSWORD>postgres</POSTGRES_PASSWORD>
+                                                </env>
+                                                <volumes>
+                                                    <bind>
+                                                        <volume>${project.basedir}/src/main/resources/docker/1-schema.sql:/docker-entrypoint-initdb.d/1-schema.sql</volume>
+                                                        <volume>${project.build.testSourceDirectory}/docker/2-data.sql:/docker-entrypoint-initdb.d/2-data.sql</volume>
+                                                    </bind>
+                                                </volumes>
+                                                <wait>
+                                                    <log>.*server started.*</log>
+                                                    <time>20000</time>
+                                                </wait>
+                                            </run>
+                                        </image>
+                                        <image>
+                                            <alias>service</alias>
+                                            <name>testing-with-containers/${project.build.finalName}:${project.version}</name>
+                                            <build>
+                                                <contextDir>${project.basedir}</contextDir>
+                                            </build>
+                                            <run>
+                                                <ports>
+                                                    <port>host.port:9080</port><!-- required for the http wait -->
+                                                </ports>
+                                                <wait>
+                                                    <http>
+                                                        <url>http://localhost:${host.port}/todo-list-service/api/todos</url>
+                                                    </http>
+                                                    <time>60000</time>
+                                                </wait>
+                                                <dependsOn>
+                                                    <container>database</container>
+                                                </dependsOn>
+                                                <links>
+                                                    <link>database</link>
+                                                </links>
+                                            </run>
+                                        </image>
+                                        <image>
+                                            <alias>newman</alias>
+                                            <name>postman/newman:4.6.0-alpine</name>
+                                            <run>
+                                                <entrypoint>
+                                                    <arg>newman</arg>
+                                                    <arg>run</arg>
+                                                    <arg>todo-list-service.postman_collection.json</arg>
+                                                    <arg>--environment</arg>
+                                                    <arg>todo-list-service.postman_environment.json</arg>
+                                                    <arg>--reporters=cli,junit</arg>
+                                                    <arg>--reporter-junit-export=/results</arg>
+                                                </entrypoint>
+                                                <volumes>
+                                                    <bind>
+                                                        <volume>${project.build.testSourceDirectory}/postman:/etc/newman</volume>
+                                                        <volume>${project.build.testSourceDirectory}/postman:/results</volume>
+                                                    </bind>
+                                                </volumes>
+                                                <dependsOn>
+                                                    <container>database</container>
+                                                    <container>service</container>
+                                                </dependsOn>
+                                                <links>
+                                                    <link>database</link>
+                                                    <link>service</link>
+                                                </links>
+                                                <wait>
+                                                    <exit>0</exit>
+                                                </wait>
+                                            </run>
+                                        </image>
+                                    </images>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>stop-postman-containers</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>stop</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
