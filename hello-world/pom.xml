@@ -23,7 +23,6 @@
         <version.open-liberty>20.0.0.2</version.open-liberty>
 
         <version.microprofile>3.2</version.microprofile>
-        <version.microprofile-ext>1.0.5</version.microprofile-ext>
 
         <version.slf4j>1.7.30</version.slf4j>
 
@@ -86,27 +85,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <version>1.4.13</version>
-                <configuration>
-                    <repository>testing-with-containers/${project.build.finalName}</repository>
-                    <tag>${project.version}</tag>
-                    <buildArgs>
-                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
-                    </buildArgs>
-                    <skipDockerInfo>true</skipDockerInfo>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M4</version>
@@ -142,18 +120,6 @@
             <version>${version.microprofile}</version>
             <type>pom</type>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.microprofile-ext.health-ext</groupId>
-            <artifactId>healthprobe-jvm</artifactId>
-            <version>${version.microprofile-ext}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.microprofile-ext.health-ext</groupId>
-            <artifactId>healthprobe-system</artifactId>
-            <version>${version.microprofile-ext}</version>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Logging -->
