@@ -29,7 +29,7 @@ import io.cucumber.junit.CucumberOptions;
 /**
  * EXERCISE 2: HelloWorld cucumber test with manual container management (JUnit 4)
  *
- * HOWTO:
+ * TODO:
  * 1. prepare Dockerfile
  * 2. add Generic Container with ImageFromDockerfile
  * 3. call start/stop

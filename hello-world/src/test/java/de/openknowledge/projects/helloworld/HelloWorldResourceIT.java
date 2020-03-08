@@ -41,49 +41,40 @@ import io.restassured.RestAssured;
 /**
  * EXERCISE 1: HelloWorld integration test with testcontainer on-the-fly (JUnit 5)
  *
- * HOWTO:
+ * TODO:
  * 1. add @Testcontainers annotation to test class
  * 2. add Generic Container with ImageFromDockerfile & use DockerfileBuilder
  * 3. add log consumer to receive container logs
  * 4. get host and port from container
  */
-@Testcontainers
 public class HelloWorldResourceIT {
 
   private static final Logger LOG = LoggerFactory.getLogger(HelloWorldResourceIT.class);
 
   /**
-   * HOWTO:
+   * TODO:
    * 2. add Generic Container with ImageFromDockerfile & use DockerfileBuilder
    * - add @Container annotation
    * - instantiate GenericContainer with ImageFromDockerfile
    * - use DockerfileBuilder to
-   *    + define Docker base image (openjdk)
+   *    + define Docker base image
    *    + copy runnable jar to /opt
    *    + define expose port
    *    + define entry point that starts the runnable jar
    * - set expose port
    *
+   * HINT: use openjdk:8-jre-alpine image
+   *
    * 3. add log consumer to receive container logs
    *
    * HINT: use Slf4jLogConsumer
    */
-  @Container
-  private static final GenericContainer<?> CONTAINER = new GenericContainer(
-      new ImageFromDockerfile().withDockerfileFromBuilder(builder -> builder
-          .from("openjdk:8-jre-alpine")
-          .add("target/hello-world.jar", "/opt/hello-world.jar")
-          .expose(9080)
-          .entryPoint("exec java -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -jar /opt/hello-world.jar")
-          .build())
-          .withFileFromFile("target/hello-world.jar", new File("target/hello-world.jar")))
-      .withExposedPorts(9080)
-      .withLogConsumer(new Slf4jLogConsumer(LOG));
+  private static final GenericContainer<?> CONTAINER = new GenericContainer();
 
   private static URI uri;
 
   /*
-   * HOWTO:
+   * TODO:
    * 4. get host and port from container
    * - set host to container ip address
    * - set port to container mapped port
@@ -92,8 +83,8 @@ public class HelloWorldResourceIT {
   public static void setUpUri() {
     uri = UriBuilder.fromPath("hello-world")
         .scheme("http")
-        .host(CONTAINER.getContainerIpAddress())
-        .port(CONTAINER.getFirstMappedPort())
+        //.host(...)
+        //.port(...)
         .build();
   }
 

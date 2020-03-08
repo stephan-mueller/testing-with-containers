@@ -56,14 +56,13 @@ import io.restassured.module.jsv.JsonSchemaValidator;
 /**
  * EXERCISE 6: TodoGatewayResource integration test with Mockserver (JUnit 5)
  *
- * HOWTO:
+ * TODO:
  * 1. add @Testcontainers annotation to test class
  * 2. add Network to link the two testcontainers
  * 3. add MockServerContainer
  * 4. add GenericContainer with todo-list-gateway image
  * 5. get host and port from gateway container
  */
-@Testcontainers
 public class TodoGatewayResourceIT {
 
   private static final Logger LOG = LoggerFactory.getLogger(TodoGatewayResourceIT.class);
@@ -72,10 +71,10 @@ public class TodoGatewayResourceIT {
   private static final Integer MOCKSERVER_EXPOSED_PORT = 1080;
 
   /**
-   * HOWTO:
+   * TODO:
    * 2. add Network to link the two testcontainers
    */
-  private static final Network NETWORK = Network.newNetwork();
+  private static final Network NETWORK = null;
 
   /**
    * 3. add MockServerContainer
@@ -85,11 +84,7 @@ public class TodoGatewayResourceIT {
    * - add network alias "mockserver"
    * - add log consumer to receive container logs
    */
-  @Container
-  private static final MockServerContainer MOCKSERVER = new MockServerContainer()
-      .withNetwork(NETWORK)
-      .withNetworkAliases(MOCKSERVER_NETWORK_ALIAS)
-      .withLogConsumer(new Slf4jLogConsumer(LOG));
+  private static final MockServerContainer MOCKSERVER = new MockServerContainer();
 
   /**
    * 4. add GenericContainer with todo-list-gateway image
@@ -105,18 +100,12 @@ public class TodoGatewayResourceIT {
    * HINT 1: use service image "testing-with-containers/todo-list-gateway:0" (requires to run "mvn clean package" before)
    * HINT 2: use "SERVICE_HOST" = "mockserver", "SERVICE_PORT" = "1080" as environment settings
    */
-  @Container
-  private static final GenericContainer<?> GATEWAY = GatewayContainer.newContainer()
-      .dependsOn(MOCKSERVER)
-      .withNetwork(NETWORK)
-      .withEnv(ENV_SERVICE_HOST, MOCKSERVER_NETWORK_ALIAS)
-      .withEnv(ENV_SERVICE_PORT, MOCKSERVER_EXPOSED_PORT.toString())
-      .withLogConsumer(new Slf4jLogConsumer(LOG));
+  private static final GenericContainer<?> GATEWAY = GatewayContainer.newContainer();
 
   private static URI uri;
 
   /**
-   * HOWTO:
+   * TODO:
    * 5. get host and port from gateway container
    * - set host to container ip address
    * - set port to container mapped port
@@ -125,8 +114,8 @@ public class TodoGatewayResourceIT {
   public static void setUpUri() {
     uri = UriBuilder.fromPath("todo-list-gateway")
         .scheme("http")
-        .host(GATEWAY.getContainerIpAddress())
-        .port(GATEWAY.getFirstMappedPort())
+        //.host(...)
+        //.port(...)
         .build();
   }
 
