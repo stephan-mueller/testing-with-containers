@@ -1,9 +1,16 @@
+# HOWTO:
+#
+# 1. define Docker base image
+# 2. add runnable jar to /opt
+# 3. define expose port
+# 4. define entry point that starts the runnable jar
+#
+# HINT 1: use docker image "openjdk:8-jre"
+# HINT 2: add JAVA_OPTS "-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true"
+#
 FROM openjdk:8-jre
 
-ARG JAR_FILE
-ADD target/${JAR_FILE} /opt/hello-world.jar
-
-ENV JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true"
+ADD target/hello-world.jar /opt/hello-world.jar
 
 EXPOSE 9080
-ENTRYPOINT exec java $JAVA_OPTS -jar /opt/hello-world.jar
+ENTRYPOINT exec java -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -jar /opt/hello-world.jar

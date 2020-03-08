@@ -35,6 +35,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MockServerContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -52,6 +53,16 @@ import io.restassured.module.jsv.JsonSchemaValidator;
 /**
  * Integration test class for the resource {@link TodoGatewayResource}.
  */
+/**
+ * EXERCISE 6: TodoGatewayResource integration test with Mockserver (JUnit 5)
+ *
+ * HOWTO:
+ * 1. add @Testcontainers annotation to test class
+ * 2. add Network to link the two testcontainers
+ * 3. add MockServerContainer
+ * 4. add GenericContainer with todo-list-gateway image
+ * 5. get host and port from gateway container
+ */
 @Testcontainers
 public class TodoGatewayResourceIT {
 
@@ -60,24 +71,59 @@ public class TodoGatewayResourceIT {
   private static final String MOCKSERVER_NETWORK_ALIAS = "mockserver";
   private static final Integer MOCKSERVER_EXPOSED_PORT = 1080;
 
+  /**
+   * HOWTO:
+   * 2. add Network to link the two testcontainers
+   */
   private static final Network NETWORK = Network.newNetwork();
 
+  /**
+   * 3. add MockServerContainer
+   * - add @Container annotation
+   * - instantiate MockServerContainer
+   * - set network
+   * - add network alias "mockserver"
+   * - add log consumer to receive container logs
+   */
   @Container
   private static final MockServerContainer MOCKSERVER = new MockServerContainer()
       .withNetwork(NETWORK)
       .withNetworkAliases(MOCKSERVER_NETWORK_ALIAS)
       .withLogConsumer(new Slf4jLogConsumer(LOG));
 
+  /**
+   * 4. add GenericContainer with todo-list-gateway image
+   * - add @Container annotation
+   * - instantiate GenericContainer with todo-list-gateway image
+   * - set depends on MockServerContainer
+   * - set network
+   * - set environment variables "SERVICE_HOST" and "SERVICE_PORT" for todo-list-service client (makes http calls to MockServer)
+   * - add log consumer to receive container logs
+   *
+   * @see GatewayContainer
+   *
+   * HINT 1: use service image "testing-with-containers/todo-list-gateway:0" (requires to run "mvn clean package" before)
+   * HINT 2: use "SERVICE_HOST" = "mockserver", "SERVICE_PORT" = "1080" as environment settings
+   */
   @Container
   private static final GenericContainer<?> GATEWAY = GatewayContainer.newContainer()
       .dependsOn(MOCKSERVER)
       .withNetwork(NETWORK)
       .withEnv(ENV_SERVICE_HOST, MOCKSERVER_NETWORK_ALIAS)
       .withEnv(ENV_SERVICE_PORT, MOCKSERVER_EXPOSED_PORT.toString())
-      .withLogConsumer(new Slf4jLogConsumer(LOG));
+      .withLogConsumer(new Slf4jLogConsumer(LOG))
+      .waitingFor(
+          Wait.forLogMessage(".*server started.*", 1)
+      );
 
   private static URI uri;
 
+  /**
+   * HOWTO:
+   * 5. get host and port from gateway container
+   * - set host to container ip address
+   * - set port to container mapped port
+   */
   @BeforeAll
   public static void setUpUri() {
     uri = UriBuilder.fromPath("todo-list-gateway")

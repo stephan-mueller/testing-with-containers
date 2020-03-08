@@ -28,7 +28,7 @@ public final class GatewayContainer {
 
   public static final Integer EXPOSED_PORT = 19080;
 
-  private final GenericContainer<?> container = new GenericContainer("testing-todo-list/todo-list-gateway:0")
+  private final GenericContainer<?> container = new GenericContainer("testing-with-containers/todo-list-gateway:0")
       .withExposedPorts(EXPOSED_PORT)
       .waitingFor(Wait.forListeningPort());
 

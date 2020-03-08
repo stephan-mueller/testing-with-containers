@@ -55,6 +55,28 @@ import io.restassured.module.jsv.JsonSchemaValidator;
 /**
  * Integration test class for the resource {@link TodoResource}.
  */
+/**
+ * EXERCISE 4: Todo-List integration test with two testcontainers (JUnit 4)
+ *
+ * HOWTO:
+ * 1. add Network to link the two testcontainers
+ * 2. add FixedHostGenericContainer with postgres image (name = database)
+ * 3. add GenericContainer with todo-list-service image (name = service)
+ * 4. get host and port from container
+ */
+/**
+ * EXERCISE 5: Todo-List integration test with DockerCompose (JUnit 4)
+ *
+ * HOWTO:
+ * 5. set up DockerCompose Container
+ * 6. replace GenericContainers with DockerComposeContainer
+ * 7. override JDBC Url
+ * 8. get host and port from container
+ *
+ * @see ComposeContainer
+ *
+ * HINT: docker-compose.yml file is located at /testing-with-containers/todo-list/todo-list-service/docker-compose.yml
+ */
 @RunWith(JUnit4.class)
 @DBUnit(caseSensitiveTableNames = true, escapePattern = "\"?\"")
 public class TodoResourceIT {
@@ -66,6 +88,67 @@ public class TodoResourceIT {
   private static final long UPDATED_TODO_ID = 2L;
   private static final long UNKNOWN_TODO_ID = 999L;
 
+  /**
+   * HOWTO:
+   * 1. add Network to link the two testcontainers
+   */
+//  public static Network network = Network.newNetwork();
+
+  /**
+   * 2. add FixedHostGenericContainer with postgres image (name = database)
+   * - add @ClassRule annotation
+   * - instantiate GenericContainer with postgres image
+   * - set expose port (5432)
+   * - set network
+   * - add network alias "database"
+   * - add log consumer to receive container logs
+   * - add WaitStrategy -> Wait.forLogMessage(".*server started.*", 1)
+   */
+//  @ClassRule
+//  public static FixedHostPortGenericContainer<?> database = new FixedHostPortGenericContainer<>("postgres:12-alpine")
+//      .withExposedPorts(5432)
+//      .withFixedExposedPort(5432, 5432)
+//      .withNetwork(network)
+//      .withNetworkAliases("database")
+//      .withEnv("POSTGRES_DB", "postgres")
+//      .withEnv("POSTGRES_USER", "postgres")
+//      .withEnv("POSTGRES_PASSWORD", "postgres")
+//      .withClasspathResourceMapping("docker/1-schema.sql", "/docker-entrypoint-initdb.d/1-schema.sql", BindMode.READ_ONLY)
+//      .withLogConsumer(new Slf4jLogConsumer(LOG))
+//      .waitingFor(
+//          Wait.forLogMessage(".*server started.*", 1)
+//      );
+
+  /**
+   * 3. add GenericContainer with todo-list-service image (name = service)
+   * - add @ClassRule annotation
+   * - instantiate GenericContainer with service image
+   * - set expose port (9080)
+   * - set network
+   * - set depends on database container
+   * - add log consumer to receive container logs
+   * - add WaitStrategy -> Wait.forLogMessage(".*server started.*", 1)
+   *
+   * HINT: use service image "testing-with-containers/todo-list-service:0" (requires to run "mvn clean package" before)
+   */
+//  @ClassRule
+//  public static GenericContainer service = new GenericContainer("testing-with-containers/todo-list-service:0")
+//      .withExposedPorts(9080)
+//      .withNetwork(network)
+//      .dependsOn(database)
+//      .withLogConsumer(new Slf4jLogConsumer(LOG))
+//      .waitingFor(
+//          Wait.forLogMessage(".*server started.*", 1)
+//      );
+
+  /**
+   * HOWTO:
+   * 5. replace GenericContainers with DockerComposeContainer
+   * - add log consumer for database container
+   * - add log consumer for service container
+   *
+   * @see ComposeContainer
+   */
   @ClassRule
   public static DockerComposeContainer environment = ComposeContainer.newContainer()
       .withLogConsumer(COMPOSE_SERVICENAME_DATABASE, new Slf4jLogConsumer(LOG))
@@ -75,6 +158,13 @@ public class TodoResourceIT {
 
   private static URI uri;
 
+  /**
+   * HOWTO:
+   * 6. override JDBC Url
+   * - add database container port to JDBC url
+   *
+   * HINT: use jpa property "javax.persistence.jdbc.url"
+   */
   @BeforeClass
   public static void setUpDatabase() {
     String databaseHost = environment.getServiceHost("database", DATABASE_PORT);
@@ -82,6 +172,18 @@ public class TodoResourceIT {
     entityManagerProviderProperties.put("javax.persistence.jdbc.url", String.format("jdbc:postgresql://%s:%d/postgres", databaseHost, databasePort));
   }
 
+  /**
+   * HOWTO:
+   * 4. get host and port from container
+   * - set host to container ip address
+   * - set port to container mapped port
+   */
+  /**
+   * HOWTO:
+   * 8. get host and port from DockerComposeContainer
+   * - set host to service container ip address
+   * - set port to service container mapped port
+   */
   @BeforeClass
   public static void setUpUri() {
     String serviceHost = environment.getServiceHost("service", SERVICE_PORT);

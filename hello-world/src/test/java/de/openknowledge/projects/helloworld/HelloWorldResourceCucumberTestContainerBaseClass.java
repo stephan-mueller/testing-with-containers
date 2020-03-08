@@ -16,7 +16,9 @@
 package de.openknowledge.projects.helloworld;
 
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.images.builder.ImageFromDockerfile;
 
+import java.io.File;
 import java.net.URI;
 
 import javax.ws.rs.core.UriBuilder;
@@ -32,7 +34,19 @@ import cucumber.api.event.TestRunStarted;
  */
 public class HelloWorldResourceCucumberTestContainerBaseClass implements ConcurrentEventListener {
 
-  private static final GenericContainer<?> CONTAINER = new GenericContainer("testing-with-containers/hello-world:0")
+  /**
+   * HOWTO:
+   * 2. add Generic Container with ImageFromDockerfile
+   *    + add Dockerfile
+   *    + add JAR
+   *    + set exposed port
+   *
+   * HINT: use withFileFromFile()
+   */
+  private static final GenericContainer<?> CONTAINER = new GenericContainer(
+      new ImageFromDockerfile()
+          .withFileFromFile("Dockerfile", new File("Dockerfile"))
+          .withFileFromFile("target/hello-world.jar", new File("target/hello-world.jar")))
       .withExposedPorts(9080);
 
   private static URI uri;
@@ -48,10 +62,21 @@ public class HelloWorldResourceCucumberTestContainerBaseClass implements Concurr
     setUpUri();
   };
 
+  /**
+   * HOWTO:
+   * 3. call start/stop
+   * - start container
+   */
   private void beforeAll() {
     CONTAINER.start();
   }
 
+  /**
+   * HOWTO:
+   * 4. get host and port from container
+   * - set host to container ip address
+   * - set port to container mapped port
+   */
   private void setUpUri() {
     uri = UriBuilder.fromPath("hello-world")
         .scheme("http")
@@ -62,6 +87,11 @@ public class HelloWorldResourceCucumberTestContainerBaseClass implements Concurr
 
   private EventHandler<TestRunFinished> teardown = event -> afterAll();
 
+  /*
+   * HOWTO:
+   * 3. call start/stop
+   * - stop container
+   */
   private void afterAll() {
     CONTAINER.stop();
   }

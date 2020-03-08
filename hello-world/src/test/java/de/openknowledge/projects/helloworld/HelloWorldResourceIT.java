@@ -22,9 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.File;
 import java.net.URI;
 
 import javax.ws.rs.core.MediaType;
@@ -36,18 +38,56 @@ import io.restassured.RestAssured;
 /**
  * Integration test for the resource {@link HelloWorldResource}.
  */
+/**
+ * EXERCISE 1: HelloWorld integration test with testcontainer on-the-fly (JUnit 5)
+ *
+ * HOWTO:
+ * 1. add @Testcontainers annotation to test class
+ * 2. add Generic Container with ImageFromDockerfile & use DockerfileBuilder
+ * 3. add log consumer to receive container logs
+ * 4. get host and port from container
+ */
 @Testcontainers
 public class HelloWorldResourceIT {
 
   private static final Logger LOG = LoggerFactory.getLogger(HelloWorldResourceIT.class);
 
+  /**
+   * HOWTO:
+   * 2. add Generic Container with ImageFromDockerfile & use DockerfileBuilder
+   * - add @Container annotation
+   * - instantiate GenericContainer with ImageFromDockerfile
+   * - use DockerfileBuilder to
+   *    + define Docker base image (openjdk)
+   *    + add runnable jar to /opt
+   *    + define expose port
+   *    + define entry point that starts the runnable jar
+   * - set expose port
+   *
+   * 3. add log consumer to receive container logs
+   *
+   * HINT: use Slf4jLogConsumer
+   */
   @Container
-  private static final GenericContainer<?> CONTAINER = new GenericContainer("testing-with-containers/hello-world:0")
+  private static final GenericContainer<?> CONTAINER = new GenericContainer(
+      new ImageFromDockerfile().withDockerfileFromBuilder(builder -> builder
+          .from("openjdk:8-jre")
+          .add("target/hello-world.jar", "/opt/hello-world.jar")
+          .expose(9080)
+          .entryPoint("exec java -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -jar /opt/hello-world.jar")
+          .build())
+          .withFileFromFile("target/hello-world.jar", new File("target/hello-world.jar")))
       .withExposedPorts(9080)
       .withLogConsumer(new Slf4jLogConsumer(LOG));
 
   private static URI uri;
 
+  /*
+   * HOWTO:
+   * 4. get host and port from container
+   * - set host to container ip address
+   * - set port to container mapped port
+   */
   @BeforeAll
   public static void setUpUri() {
     uri = UriBuilder.fromPath("hello-world")

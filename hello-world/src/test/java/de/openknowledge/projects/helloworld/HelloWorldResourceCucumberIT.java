@@ -26,6 +26,19 @@ import io.cucumber.junit.CucumberOptions;
  * @see HelloWorldResourceCucumberSteps
  * @see HelloWorldResourceCucumberTestContainerBaseClass
  */
+/**
+ * EXERCISE 2: HelloWorld cucumber test with manual container management (JUnit 4)
+ *
+ * HOWTO:
+ * 1. prepare Dockerfile
+ * 2. add Generic Container with ImageFromDockerfile
+ * 3. call start/stop
+ * 4. get host and port from container
+ *
+ * @see HelloWorldResourceCucumberSteps
+ *
+ * HINT: Dockerfile is located at /testing-with-containers/hello-world/Dockerfile
+ */
 @RunWith(Cucumber.class)
 @CucumberOptions(plugin = { "pretty", "de.openknowledge.projects.helloworld.HelloWorldResourceCucumberTestContainerBaseClass"}, features = "src/test/resources/it/feature")
 public class HelloWorldResourceCucumberIT {

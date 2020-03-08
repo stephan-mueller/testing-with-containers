@@ -36,8 +36,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -48,21 +51,60 @@ import java.util.Optional;
 /**
  * DbUnit test for the repository {@link TodoRepository}.
  */
+/**
+ * EXERCISE 3: DbUnit persistence test with Postgres DB (JUnit 4)
+ *
+ * HOWTO:
+ * 1. add FixedHostPortGenericContainer with postgres image
+ * 2. set environment variables for database configuration (database, user, password)
+ * 3. add DDL script
+ *
+ * 4. replace FixedHostPortGenericContainer by GenericContainer
+ * 5. override JDBC Url
+ */
 @Ignore
 @RunWith(JUnit4.class)
 @DBUnit(caseSensitiveTableNames = true, escapePattern = "\"?\"")
 public class TodoRepositoryIT {
 
+  private static final Logger LOG = LoggerFactory.getLogger(TodoRepositoryIT.class);
+
+  /**
+   * HOWTO:
+   * 1. add FixedHostPortGenericContainer with postgres image
+   * - add @ClassRule annotation
+   * - instantiate GenericContainer with postgres image
+   * - set expose port (5432)
+   * - add log consumer to receive container logs
+   *
+   * 2. set environment variables for database configuration (database, user, password)
+   * 3. add DDL script
+   *
+   * HINT 1: use postgres image "postgres:12-alpine"
+   * HINT 2: use "POSTGRES_DB" = "postgres", "POSTGRES_USER" = "postgres", "POSTGRES_PASSWORD" = "postgres" as environment settings
+   */
+  /**
+   * HOWTO
+   * 4. replace FixedHostPortGenericContainer by GenericContainer
+   */
   @ClassRule
   public static GenericContainer<?> database = new GenericContainer<>("postgres:12-alpine")
     .withExposedPorts(5432)
     .withEnv("POSTGRES_DB", "postgres")
     .withEnv("POSTGRES_USER", "postgres")
     .withEnv("POSTGRES_PASSWORD", "postgres")
-    .withClasspathResourceMapping("docker/1-schema.sql", "/docker-entrypoint-initdb.d/1-schema.sql", BindMode.READ_ONLY);
+    .withClasspathResourceMapping("docker/1-schema.sql", "/docker-entrypoint-initdb.d/1-schema.sql", BindMode.READ_ONLY)
+    .withLogConsumer(new Slf4jLogConsumer(LOG));
 
   private static Map<String, String> entityManagerProviderProperties = new HashMap<>();
 
+  /**
+   * HOWTO:
+   * 5. override JDBC url
+   * - add container port to JDBC url
+   *
+   * HINT: use jpa property "javax.persistence.jdbc.url"
+   */
   @BeforeClass
   public static void setUpDatabase() {
     entityManagerProviderProperties.put("javax.persistence.jdbc.url", String.format("jdbc:postgresql://localhost:%d/postgres", database.getFirstMappedPort()));
