@@ -18,14 +18,14 @@ jar and Docker image and can be run `todo-list-service` together with its requir
 
 ```shell script
 $ cd todo-list/todo-list-service
-$ mvn clean build
+$ mvn clean package
 $ docker-compose up
 ```
 
 When changing code you must re-run the package process and start docker-compose with the additional build parameter to
 ensure that both the application and the Docker image is up-to-date:
 ```shell script
-$ mvn clean build
+$ mvn clean package
 $ docker-compose up --build
 ```
 
@@ -39,7 +39,7 @@ To run the `todo-list-gateway` you need to start it manually via Docker after bu
 
 ```shell script
 $ cd todo-list/todo-list-gateway
-$ mvn clean build
+$ mvn clean package
 $ docker run --rm -p 19080:19080 testing-with-containers/todo-list-gateway:0
 ```
 

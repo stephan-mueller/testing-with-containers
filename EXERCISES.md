@@ -1,5 +1,7 @@
 # Exercises for the _Testing with Containers_ workshop
 
+**Please switch to branch 'workshop'**
+
 This is an overview of the exercises for the workshop. There are several exercises spread across the source files.
 You can find all exercises when you do a fulltext search for `EXERCISE`. There is also an overview below.
 
