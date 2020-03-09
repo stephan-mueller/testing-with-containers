@@ -1,7 +1,7 @@
 FROM openjdk:8-jre
 
 ARG JAR_FILE
-ADD target/${JAR_FILE} /opt/todo-list-service.jar
+COPY target/${JAR_FILE} /opt/todo-list-service.jar
 
 ENV JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true"
 

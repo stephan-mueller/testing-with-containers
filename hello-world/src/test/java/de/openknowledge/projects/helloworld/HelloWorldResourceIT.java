@@ -59,7 +59,7 @@ public class HelloWorldResourceIT {
    * - instantiate GenericContainer with ImageFromDockerfile
    * - use DockerfileBuilder to
    *    + define Docker base image (openjdk)
-   *    + add runnable jar to /opt
+   *    + copy runnable jar to /opt
    *    + define expose port
    *    + define entry point that starts the runnable jar
    * - set expose port
