@@ -42,7 +42,7 @@ public final class ComposeContainer {
    */
   private final DockerComposeContainer environment = new DockerComposeContainer(new File("./docker-compose.yml"))
       .withExposedService(COMPOSE_SERVICENAME_DATABASE, DATABASE_PORT, Wait.forLogMessage(".*server started.*", 1))
-      .withExposedService(COMPOSE_SERVICENAME_SERVICE, SERVICE_PORT, Wait.forHttp("/todo-list-service/api/todos"));
+      .withExposedService(COMPOSE_SERVICENAME_SERVICE, SERVICE_PORT);
 
   private ComposeContainer() {
     super();
