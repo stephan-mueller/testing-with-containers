@@ -5,10 +5,10 @@
 # 3. define expose port
 # 4. define entry point that starts the runnable jar
 #
-# HINT 1: use docker image "openjdk:8-jre"
+# HINT 1: use docker image "openjdk:8-jre-alpine"
 # HINT 2: add JAVA_OPTS "-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true"
 #
-FROM openjdk:8-jre
+FROM openjdk:8-jre-alpine
 
 COPY target/hello-world.jar /opt/hello-world.jar
 

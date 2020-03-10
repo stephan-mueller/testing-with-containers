@@ -71,7 +71,7 @@ public class HelloWorldResourceIT {
   @Container
   private static final GenericContainer<?> CONTAINER = new GenericContainer(
       new ImageFromDockerfile().withDockerfileFromBuilder(builder -> builder
-          .from("openjdk:8-jre")
+          .from("openjdk:8-jre-alpine")
           .add("target/hello-world.jar", "/opt/hello-world.jar")
           .expose(9080)
           .entryPoint("exec java -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -jar /opt/hello-world.jar")
