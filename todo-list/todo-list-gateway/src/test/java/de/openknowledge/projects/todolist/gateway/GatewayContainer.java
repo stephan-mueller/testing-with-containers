@@ -26,7 +26,7 @@ public final class GatewayContainer {
   public static final String ENV_SERVICE_HOST = "SERVICE_HOST";
   public static final String ENV_SERVICE_PORT = "SERVICE_PORT";
 
-  public static final Integer EXPOSED_PORT = 19080;
+  public static final Integer EXPOSED_PORT = 9080;
 
   private final GenericContainer<?> container = new GenericContainer("testing-with-containers/todo-list-gateway:0")
       .withExposedPorts(EXPOSED_PORT);

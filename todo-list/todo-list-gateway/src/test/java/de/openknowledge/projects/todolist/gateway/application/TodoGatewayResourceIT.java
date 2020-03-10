@@ -111,10 +111,7 @@ public class TodoGatewayResourceIT {
       .withNetwork(NETWORK)
       .withEnv(ENV_SERVICE_HOST, MOCKSERVER_NETWORK_ALIAS)
       .withEnv(ENV_SERVICE_PORT, MOCKSERVER_EXPOSED_PORT.toString())
-      .withLogConsumer(new Slf4jLogConsumer(LOG))
-      .waitingFor(
-          Wait.forLogMessage(".*server started.*", 1)
-      );
+      .withLogConsumer(new Slf4jLogConsumer(LOG));
 
   private static URI uri;
 
