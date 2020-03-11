@@ -15,47 +15,37 @@
  */
 package de.openknowledge.projects.todolist.gateway.infrastructure.microprofile.health;
 
-import de.openknowledge.projects.todolist.gateway.GatewayContainer;
+import de.openknowledge.projects.todolist.gateway.AbstractIntegrationTest;
 
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
 
 /**
  * Integration test for the health check {@link ApplicationHealthCheck}.
  */
-@Disabled
-@Testcontainers
-public class ApplicationHealthCheckIT {
+public class ApplicationHealthCheckIT extends AbstractIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ApplicationHealthCheckIT.class);
 
-  @Container
-  private static final GenericContainer<?> GATEWAY = GatewayContainer.newContainer()
-      .withLogConsumer(new Slf4jLogConsumer(LOG));
-
   @Test
   public void checkHealth() {
-    RestAssured.given()
+    RequestSpecification requestSpecification = new RequestSpecBuilder()
+        .setPort(GATEWAY.getFirstMappedPort())
+        .build();
+
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .when()
-        .get(UriBuilder.fromPath("health")
-                 .scheme("http")
-                 .host(GATEWAY.getContainerIpAddress())
-                 .port(GATEWAY.getFirstMappedPort())
-                 .build())
+        .get("/health")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Response.Status.OK.getStatusCode())

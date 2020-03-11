@@ -15,50 +15,38 @@
  */
 package de.openknowledge.projects.todolist.service.infrastructure.microprofile.health;
 
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_DATABASE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_SERVICE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.SERVICE_PORT;
-
-import de.openknowledge.projects.todolist.service.ComposeContainer;
+import de.openknowledge.projects.todolist.service.AbstractIntegrationTest;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.DockerComposeContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.filter.log.LogDetail;
+import io.restassured.specification.RequestSpecification;
 
 /**
  * Integration test for the health check {@link DatasourceHealthCheck}.
  */
-@Testcontainers
-public class DatasourceHealthCheckIT {
+public class DatasourceHealthCheckIT extends AbstractIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(DatasourceHealthCheckIT.class);
 
-  @Container
-  private static final DockerComposeContainer ENVIRONMENT = ComposeContainer.newContainer()
-      .withLogConsumer(COMPOSE_SERVICENAME_DATABASE, new Slf4jLogConsumer(LOG))
-      .withLogConsumer(COMPOSE_SERVICENAME_SERVICE, new Slf4jLogConsumer(LOG));
-
   @Test
   public void checkHealth() {
-    RestAssured.given()
+    RequestSpecification requestSpecification = new RequestSpecBuilder()
+        .setPort(SERVICE.getFirstMappedPort())
+        .build();
+
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .when()
-        .get(UriBuilder.fromPath("health")
-                 .scheme("http")
-                 .host(ENVIRONMENT.getServiceHost("service", SERVICE_PORT))
-                 .port(ENVIRONMENT.getServicePort("service", SERVICE_PORT))
-                 .build())
+        .get("/health")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Response.Status.OK.getStatusCode())
@@ -68,6 +56,7 @@ public class DatasourceHealthCheckIT {
         .body("data.driverName", Matchers.equalTo("PostgreSQL JDBC Driver"))
         .body("data.driverVersion", Matchers.notNullValue())
         .body("data.databaseProductName", Matchers.equalTo("PostgreSQL"))
-        .body("data.databaseProductVersion", Matchers.notNullValue());
+        .body("data.databaseProductVersion", Matchers.notNullValue())
+        .log().ifValidationFails(LogDetail.ALL);
   }
 }

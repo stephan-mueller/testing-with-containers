@@ -15,11 +15,6 @@
  */
 package de.openknowledge.projects.todolist.service.application;
 
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_DATABASE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_SERVICE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.DATABASE_PORT;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.SERVICE_PORT;
-
 import com.github.database.rider.core.DBUnitRule;
 import com.github.database.rider.core.api.configuration.DBUnit;
 import com.github.database.rider.core.api.dataset.DataSet;
@@ -27,61 +22,47 @@ import com.github.database.rider.core.api.dataset.ExpectedDataSet;
 import com.github.database.rider.core.api.dataset.SeedStrategy;
 import com.github.database.rider.core.util.EntityManagerProvider;
 
-import de.openknowledge.projects.todolist.service.ComposeContainer;
+import de.openknowledge.projects.todolist.service.AbstractIntegrationTest;
 
 import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.BindMode;
-import org.testcontainers.containers.DockerComposeContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.containers.wait.strategy.Wait;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
 
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.filter.log.LogDetail;
 import io.restassured.module.jsv.JsonSchemaValidator;
+import io.restassured.specification.RequestSpecification;
 
 /**
  * Integration test class for the resource {@link TodoResource}.
+ *
+ * EXERCISE 4: Todo-List integration test with two testcontainers (JUnit 4)
+ *
+ * HOWTO: 1. add Network to link the two testcontainers 2. add FixedHostGenericContainer with postgres image (name = database) 3. add
+ * GenericContainer with todo-list-service image (name = service) 4. get host and port from container
  */
+
 /**
  * EXERCISE 4: Todo-List integration test with two testcontainers (JUnit 4)
  *
- * HOWTO:
- * 1. add Network to link the two testcontainers
- * 2. add FixedHostGenericContainer with postgres image (name = database)
- * 3. add GenericContainer with todo-list-service image (name = service)
- * 4. get host and port from container
- */
-/**
- * EXERCISE 5: Todo-List integration test with DockerCompose (JUnit 4)
- *
- * HOWTO:
- * 5. set up DockerCompose Container
- * 6. replace GenericContainers with DockerComposeContainer
- * 7. override JDBC Url
- * 8. get host and port from container
- *
- * @see ComposeContainer
- *
- * HINT: docker-compose.yml file is located at /testing-with-containers/todo-list/todo-list-service/docker-compose.yml
+ * HOWTO: 1. add Network to link the two testcontainers 2. add FixedHostGenericContainer with postgres image (name = database) 3. add
+ * GenericContainer with todo-list-service image (name = service) 4. get host and port from container
  */
 @RunWith(JUnit4.class)
 @DBUnit(caseSensitiveTableNames = true, escapePattern = "\"?\"")
-public class TodoResourceIT {
+public class TodoResourceIT extends AbstractIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TodoResourceIT.class);
 
@@ -94,15 +75,15 @@ public class TodoResourceIT {
    * HOWTO:
    * 1. add Network to link the two testcontainers
    */
-//  public static Network network = Network.newNetwork();
+//  public static Network NETWORK = Network.newNetwork();
 
   /**
    * 2. add FixedHostGenericContainer with postgres image (name = database)
    * - add @ClassRule annotation
    * - instantiate GenericContainer with postgres image
    * - set expose port (5432)
-   * - set network
-   * - add network alias "database"
+   * - set NETWORK
+   * - add NETWORK alias "database"
    * - add log consumer to receive container logs
    * - add WaitStrategy -> Wait.forLogMessage(".*server started.*", 1)
    */
@@ -110,90 +91,59 @@ public class TodoResourceIT {
 //  public static FixedHostPortGenericContainer<?> database = new FixedHostPortGenericContainer<>("postgres:12-alpine")
 //      .withExposedPorts(5432)
 //      .withFixedExposedPort(5432, 5432)
-//      .withNetwork(network)
+//      .withNetwork(NETWORK)
 //      .withNetworkAliases("database")
 //      .withEnv("POSTGRES_DB", "postgres")
 //      .withEnv("POSTGRES_USER", "postgres")
 //      .withEnv("POSTGRES_PASSWORD", "postgres")
-//      .withClasspathResourceMapping("docker/1-schema.sql", "/docker-entrypoint-initdb.d/1-schema.sql", BindMode.READ_ONLY)
+//      .withCopyFileToContainer(MountableFile.forClasspathResource("docker/1-schema.sql"), "/docker-entrypoint-initdb.d/1-schema.sql")
 //      .withLogConsumer(new Slf4jLogConsumer(LOG))
 //      .waitingFor(
 //          Wait.forLogMessage(".*server started.*", 1)
 //      );
 
   /**
-   * 3. add GenericContainer with todo-list-service image (name = service)
-   * - add @ClassRule annotation
-   * - instantiate GenericContainer with service image
-   * - set expose port (9080)
-   * - set network
-   * - set depends on database container
-   * - add log consumer to receive container logs
-   * - add WaitStrategy -> Wait.forLogMessage(".*server started.*", 1)
+   * 3. add GenericContainer with todo-list-service image (name = service) - add @ClassRule annotation - instantiate GenericContainer with
+   * service image - set expose port (9080) - set NETWORK - set depends on database container - add log consumer to receive container logs -
+   * add WaitStrategy -> Wait.forLogMessage(".*server started.*", 1)
    *
    * HINT: use service image "testing-with-containers/todo-list-service:0" (requires to run "mvn clean package" before)
    */
 //  @ClassRule
 //  public static GenericContainer service = new GenericContainer("testing-with-containers/todo-list-service:0")
 //      .withExposedPorts(9080)
-//      .withNetwork(network)
+//      .withNetwork(NETWORK)
 //      .dependsOn(database)
 //      .withLogConsumer(new Slf4jLogConsumer(LOG))
 //      .waitingFor(
 //          Wait.forLogMessage(".*server started.*", 1)
 //      );
 
-  /**
-   * HOWTO:
-   * 5. replace GenericContainers with DockerComposeContainer
-   * - add log consumer for database container
-   * - add log consumer for service container
-   *
-   * @see ComposeContainer
-   */
-  @ClassRule
-  public static DockerComposeContainer environment = ComposeContainer.newContainer()
-      .withLogConsumer(COMPOSE_SERVICENAME_DATABASE, new Slf4jLogConsumer(LOG))
-      .withLogConsumer(COMPOSE_SERVICENAME_SERVICE, new Slf4jLogConsumer(LOG));
-
   private static Map<String, String> entityManagerProviderProperties = new HashMap<>();
 
-  private static URI uri;
+  private static RequestSpecification requestSpecification;
 
   /**
-   * HOWTO:
-   * 6. override JDBC Url
-   * - add database container port to JDBC url
+   * HOWTO: 6. override JDBC Url - add database container port to JDBC url
    *
    * HINT: use jpa property "javax.persistence.jdbc.url"
    */
   @BeforeClass
   public static void setUpDatabase() {
-    String databaseHost = environment.getServiceHost("database", DATABASE_PORT);
-    Integer databasePort = environment.getServicePort("database", DATABASE_PORT);
-    entityManagerProviderProperties.put("javax.persistence.jdbc.url", String.format("jdbc:postgresql://%s:%d/postgres", databaseHost, databasePort));
+    String databaseHost = DATABASE.getContainerIpAddress();
+    Integer databasePort = DATABASE.getFirstMappedPort();
+    entityManagerProviderProperties
+        .put("javax.persistence.jdbc.url", String.format("jdbc:postgresql://%s:%d/postgres", databaseHost, databasePort));
   }
 
   /**
-   * HOWTO:
-   * 4. get host and port from container
-   * - set host to container ip address
-   * - set port to container mapped port
-   */
-  /**
-   * HOWTO:
-   * 8. get host and port from DockerComposeContainer
-   * - set host to service container ip address
-   * - set port to service container mapped port
+   * HOWTO: 4. get host and port from container - set host to container ip address - set port to container mapped port
    */
   @BeforeClass
-  public static void setUpUri() {
-    String serviceHost = environment.getServiceHost("service", SERVICE_PORT);
-    Integer servicePort = environment.getServicePort("service", SERVICE_PORT);
-    uri = UriBuilder.fromPath("todo-list-service")
-        .scheme("http")
-        .host(serviceHost)
-        .port(servicePort)
+  public static void setUpRequestSpecification() {
+    requestSpecification = new RequestSpecBuilder()
+        .setPort(SERVICE.getFirstMappedPort())
+        .setBasePath("todo-list-service")
         .build();
   }
 
@@ -203,19 +153,11 @@ public class TodoResourceIT {
   @Rule
   public DBUnitRule dbUnitRule = DBUnitRule.instance(entityManagerProvider.connection());
 
-  private URI getListUri() {
-    return UriBuilder.fromUri(uri).path("api").path("todos").build();
-  }
-
-  private URI getSingleItemUri(final Long todoId) {
-    return UriBuilder.fromUri(getListUri()).path("{id}").build(todoId);
-  }
-
   @Test
   @DataSet(strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-create-expected.yml", ignoreCols = "tod_id")
   public void createTodoShouldReturn201() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{\n"
@@ -225,7 +167,7 @@ public class TodoResourceIT {
               + "  \"done\": false\n"
               + "}")
         .when()
-        .post(getListUri())
+        .post("/api/todos")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.CREATED.getStatusCode())
@@ -234,32 +176,34 @@ public class TodoResourceIT {
         .body("title", Matchers.equalTo("clean fridge"))
         .body("description", Matchers.equalTo("It's a mess"))
         .body("dueDate", Matchers.notNullValue())
-        .body("done", Matchers.equalTo(false));
+        .body("done", Matchers.equalTo(false))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-empty.yml")
   public void createTodoShouldReturn400ForEmptyRequestBody() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{}")
         .when()
-        .post(getListUri())
+        .post("/api/todos")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(2));
+        .body("size()", Matchers.is(2))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-empty.yml")
   public void createTodoShouldReturn400ForMissingDueDate() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{\n"
@@ -268,20 +212,21 @@ public class TodoResourceIT {
               + "  \"done\": false\n"
               + "}")
         .when()
-        .post(getListUri())
+        .post("/api/todos")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-empty.yml")
   public void createTodoShouldReturn400ForMissingTitle() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{\n"
@@ -290,20 +235,21 @@ public class TodoResourceIT {
               + "  \"done\": false\n"
               + "}")
         .when()
-        .post(getListUri())
+        .post("/api/todos")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-empty.yml")
   public void createTodoShouldReturn400ForTooLargeDescription() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{\n"
@@ -313,20 +259,21 @@ public class TodoResourceIT {
               + "  \"done\": false\n"
               + "}")
         .when()
-        .post(getListUri())
+        .post("/api/todos")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-empty.yml")
   public void createTodoShouldReturn400ForTooLongTitle() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{\n"
@@ -336,20 +283,21 @@ public class TodoResourceIT {
               + "  \"done\": false\n"
               + "}")
         .when()
-        .post(getListUri())
+        .post("/api/todos")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-empty.yml")
   public void createTodoShouldReturn400ForTooShortTitle() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{\n"
@@ -359,46 +307,52 @@ public class TodoResourceIT {
               + "  \"done\": false\n"
               + "}")
         .when()
-        .post(getListUri())
+        .post("/api/todos")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-delete.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-delete-expected.yml")
   public void deleteTodoShouldReturn204() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", DELETED_TODO_ID)
         .when()
-        .delete(getSingleItemUri(DELETED_TODO_ID))
+        .delete("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NO_CONTENT.getStatusCode());
+        .statusCode(Status.NO_CONTENT.getStatusCode())
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-delete.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-delete.yml")
   public void deleteTodoShouldReturn404ForUnknownTodo() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UNKNOWN_TODO_ID)
         .when()
-        .delete(getSingleItemUri(UNKNOWN_TODO_ID))
+        .delete("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+        .statusCode(Status.NOT_FOUND.getStatusCode())
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   public void getTodoShouldReturn200() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", TODO_ID)
         .when()
-        .get(getSingleItemUri(TODO_ID))
+        .get("/api/todos/{todoId}")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.OK.getStatusCode())
@@ -407,41 +361,46 @@ public class TodoResourceIT {
         .body("title", Matchers.equalTo("clean fridge"))
         .body("description", Matchers.equalTo("It's a mess"))
         .body("dueDate", Matchers.notNullValue())
-        .body("done", Matchers.equalTo(false));
+        .body("done", Matchers.equalTo(false))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   public void getTodoShouldReturn404ForUnknownTodo() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UNKNOWN_TODO_ID)
         .when()
-        .get(getSingleItemUri(UNKNOWN_TODO_ID))
+        .get("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+        .statusCode(Status.NOT_FOUND.getStatusCode())
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   public void getTodosShouldReturn200() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .when()
-        .get(getListUri())
+        .get("/api/todos")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.OK.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/Todos-schema.json"))
-        .body("size()", Matchers.is(7));
+        .body("size()", Matchers.is(7))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-update.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-update-expected.yml", ignoreCols = "tod_duedate")
   public void updateTodoShouldReturn204() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UPDATED_TODO_ID)
         .body("{\n"
               + "  \"title\": \"clean bathroom\",\n"
               + "  \"description\": \"It's really dirty :(\",\n"
@@ -449,101 +408,111 @@ public class TodoResourceIT {
               + "  \"done\": true\n"
               + "}")
         .when()
-        .put(getSingleItemUri(UPDATED_TODO_ID))
+        .put("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NO_CONTENT.getStatusCode());
+        .statusCode(Status.NO_CONTENT.getStatusCode())
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-update.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-update.yml")
   public void updateTodoShouldReturn400ForEmptyRequestBody() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UPDATED_TODO_ID)
         .body("{}")
         .when()
-        .put(getSingleItemUri(UPDATED_TODO_ID))
+        .put("/api/todos/{todoId}")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
-        .body("size()", Matchers.is(3));
+        .body("size()", Matchers.is(3))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-update.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-update.yml")
   public void updateTodoShouldReturn400ForMissingDueDate() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UPDATED_TODO_ID)
         .body("{\n"
               + "  \"title\": \"clean bathroom\",\n"
               + "  \"description\": \"It's really dirty :(\",\n"
               + "  \"done\": true\n"
               + "}")
         .when()
-        .put(getSingleItemUri(UPDATED_TODO_ID))
+        .put("/api/todos/{todoId}")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-update.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-update.yml")
   public void updateTodoShouldReturn400ForMissingDone() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UPDATED_TODO_ID)
         .body("{\n"
               + "  \"title\": \"clean bathroom\",\n"
               + "  \"description\": \"It's really dirty :(\",\n"
               + "  \"dueDate\": \"2018-01-02T10:30:00Z\"\n"
               + "}")
         .when()
-        .put(getSingleItemUri(UPDATED_TODO_ID))
+        .put("/api/todos/{todoId}")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-update.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-update.yml")
   public void updateTodoShouldReturn400ForMissingTitle() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UPDATED_TODO_ID)
         .body("{\n"
               + "  \"description\": \"It's really dirty :(\",\n"
               + "  \"dueDate\": \"2018-01-02T10:30:00Z\",\n"
               + "  \"done\": true\n"
               + "}")
         .when()
-        .put(getSingleItemUri(UPDATED_TODO_ID))
+        .put("/api/todos/{todoId}")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-update.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-update.yml")
   public void updateTodoShouldReturn400ForTooLongDescription() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UPDATED_TODO_ID)
         .body("{\n"
               + "  \"title\": \"clean bathroom\",\n"
               + "  \"description\": \"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus\",\n"
@@ -551,22 +520,24 @@ public class TodoResourceIT {
               + "  \"done\": true\n"
               + "}")
         .when()
-        .put(getSingleItemUri(UPDATED_TODO_ID))
+        .put("/api/todos/{todoId}")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-update.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-update.yml")
   public void updateTodoShouldReturn400ForTooLongTitle() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UPDATED_TODO_ID)
         .body("{\n"
               + "  \"title\": \"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula e\",\n"
               + "  \"description\": \"It's really dirty :(\",\n"
@@ -574,22 +545,24 @@ public class TodoResourceIT {
               + "  \"done\": true\n"
               + "}")
         .when()
-        .put(getSingleItemUri(UPDATED_TODO_ID))
+        .put("/api/todos/{todoId}")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-update.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-update.yml")
   public void updateTodoShouldReturn400ForTooShortTitle() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UPDATED_TODO_ID)
         .body("{\n"
               + "  \"title\": \"\",\n"
               + "  \"description\": \"It's really dirty :(\",\n"
@@ -597,22 +570,24 @@ public class TodoResourceIT {
               + "  \"done\": true\n"
               + "}")
         .when()
-        .put(getSingleItemUri(UPDATED_TODO_ID))
+        .put("/api/todos/{todoId}")
         .then()
         .contentType(MediaType.APPLICATION_JSON)
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(1));
+        .body("size()", Matchers.is(1))
+        .log().ifValidationFails(LogDetail.ALL);
   }
 
   @Test
   @DataSet(value = "datasets/todos-update.yml", strategy = SeedStrategy.CLEAN_INSERT, cleanBefore = true)
   @ExpectedDataSet(value = "datasets/todos-update.yml")
   public void updateTodoShouldReturn404ForUnknownTodo() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", UNKNOWN_TODO_ID)
         .body("{\n"
               + "  \"title\": \"clean bathroom\",\n"
               + "  \"description\": \"It's really dirty :(\",\n"
@@ -620,8 +595,9 @@ public class TodoResourceIT {
               + "  \"done\": true\n"
               + "}")
         .when()
-        .put(getSingleItemUri(UNKNOWN_TODO_ID))
+        .put("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+        .statusCode(Status.NOT_FOUND.getStatusCode())
+        .log().ifValidationFails(LogDetail.ALL);
   }
 }

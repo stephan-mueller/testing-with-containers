@@ -24,8 +24,7 @@ import com.github.database.rider.core.api.dataset.ExpectedDataSet;
 import com.github.database.rider.core.api.dataset.SeedStrategy;
 import com.github.database.rider.core.util.EntityManagerProvider;
 
-import de.openknowledge.projects.todolist.service.domain.Todo;
-import de.openknowledge.projects.todolist.service.domain.TodoRepository;
+import de.openknowledge.projects.todolist.service.AbstractIntegrationTest;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -38,9 +37,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.utility.MountableFile;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -62,39 +61,11 @@ import java.util.Optional;
  * 4. replace FixedHostPortGenericContainer by GenericContainer
  * 5. override JDBC Url
  */
-@Ignore
 @RunWith(JUnit4.class)
 @DBUnit(caseSensitiveTableNames = true, escapePattern = "\"?\"")
-public class TodoRepositoryIT {
+public class TodoRepositoryIT extends AbstractIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TodoRepositoryIT.class);
-
-  /**
-   * HOWTO:
-   * 1. add FixedHostPortGenericContainer with postgres image
-   * - add @ClassRule annotation
-   * - instantiate GenericContainer with postgres image
-   * - set expose port (5432)
-   * - add log consumer to receive container logs
-   *
-   * 2. set environment variables for database configuration (database, user, password)
-   * 3. add DDL script
-   *
-   * HINT 1: use postgres image "postgres:12-alpine"
-   * HINT 2: use "POSTGRES_DB" = "postgres", "POSTGRES_USER" = "postgres", "POSTGRES_PASSWORD" = "postgres" as environment settings
-   */
-  /**
-   * HOWTO
-   * 4. replace FixedHostPortGenericContainer by GenericContainer
-   */
-  @ClassRule
-  public static GenericContainer<?> database = new GenericContainer<>("postgres:12-alpine")
-    .withExposedPorts(5432)
-    .withEnv("POSTGRES_DB", "postgres")
-    .withEnv("POSTGRES_USER", "postgres")
-    .withEnv("POSTGRES_PASSWORD", "postgres")
-    .withClasspathResourceMapping("docker/1-schema.sql", "/docker-entrypoint-initdb.d/1-schema.sql", BindMode.READ_ONLY)
-    .withLogConsumer(new Slf4jLogConsumer(LOG));
 
   private static Map<String, String> entityManagerProviderProperties = new HashMap<>();
 
@@ -107,7 +78,7 @@ public class TodoRepositoryIT {
    */
   @BeforeClass
   public static void setUpDatabase() {
-    entityManagerProviderProperties.put("javax.persistence.jdbc.url", String.format("jdbc:postgresql://localhost:%d/postgres", database.getFirstMappedPort()));
+    entityManagerProviderProperties.put("javax.persistence.jdbc.url", String.format("jdbc:postgresql://localhost:%d/postgres", DATABASE.getFirstMappedPort()));
   }
 
   @Rule

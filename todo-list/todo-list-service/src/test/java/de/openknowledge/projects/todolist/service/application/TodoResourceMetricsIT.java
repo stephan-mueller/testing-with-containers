@@ -15,72 +15,54 @@
  */
 package de.openknowledge.projects.todolist.service.application;
 
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_DATABASE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_SERVICE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.SERVICE_PORT;
-
-import de.openknowledge.projects.todolist.service.ComposeContainer;
+import de.openknowledge.projects.todolist.service.AbstractIntegrationTest;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.DockerComposeContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.filter.log.LogDetail;
 import io.restassured.response.ValidatableResponse;
+import io.restassured.specification.RequestSpecification;
 
 /**
  * Integration test for the metrics of the resource {@link TodoResource}.
  */
 @Disabled
-@Testcontainers
-public class TodoResourceMetricsIT {
+public class TodoResourceMetricsIT extends AbstractIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TodoResourceMetricsIT.class);
 
-  @Container
-  private static final DockerComposeContainer ENVIRONMENT = ComposeContainer.newContainer()
-      .withLogConsumer(COMPOSE_SERVICENAME_DATABASE, new Slf4jLogConsumer(LOG))
-      .withLogConsumer(COMPOSE_SERVICENAME_SERVICE, new Slf4jLogConsumer(LOG));
-
   @Test
   public void getApplicationMetrics() {
-    String serviceHost = ENVIRONMENT.getServiceHost("service", SERVICE_PORT);
-    Integer servicePort = ENVIRONMENT.getServicePort("service", SERVICE_PORT);
+    String serviceHost = SERVICE.getContainerIpAddress();
+    Integer servicePort = SERVICE.getFirstMappedPort();
 
-    RestAssured.given()
+    RequestSpecification requestSpecification = new RequestSpecBuilder()
+        .setPort(servicePort)
+        .build();
+
+    RestAssured.given(requestSpecification)
         .accept(MediaType.TEXT_PLAIN)
         .when()
-        .get(UriBuilder.fromPath("todo-list-service")
-            .scheme("http")
-            .host(serviceHost)
-            .port(servicePort)
-            .path("api")
-            .path("todos")
-            .build())
+        .get("/api/todos")
         .then()
         .statusCode(Response.Status.OK.getStatusCode());
 
-    ValidatableResponse response = RestAssured.given()
+    ValidatableResponse response = RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .when()
-        .get(UriBuilder.fromPath("metrics")
-            .scheme("http")
-            .host(serviceHost)
-            .port(servicePort)
-            .path("application")
-            .build())
+        .get("/metrics/application")
         .then()
-        .statusCode(Response.Status.OK.getStatusCode());
+        .statusCode(Response.Status.OK.getStatusCode())
+        .log().ifValidationFails(LogDetail.ALL);
 
     response
         .rootPath("'todos.TodoResource'")

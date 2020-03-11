@@ -15,59 +15,47 @@
  */
 package de.openknowledge.projects.todolist.service.infrastructure.web.cors;
 
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_DATABASE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.COMPOSE_SERVICENAME_SERVICE;
-import static de.openknowledge.projects.todolist.service.ComposeContainer.SERVICE_PORT;
-
-import de.openknowledge.projects.todolist.service.ComposeContainer;
+import de.openknowledge.projects.todolist.service.AbstractIntegrationTest;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.DockerComposeContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.filter.log.LogDetail;
+import io.restassured.specification.RequestSpecification;
 
 /**
  * Integration test for the custom CORS filter (configured in the server.xml)
  */
-@Testcontainers
-public class CustomCorsFilterIT {
+public class CustomCorsFilterIT extends AbstractIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(CustomCorsFilterIT.class);
 
-  @Container
-  private static final DockerComposeContainer ENVIRONMENT = ComposeContainer.newContainer()
-      .withLogConsumer(COMPOSE_SERVICENAME_DATABASE, new Slf4jLogConsumer(LOG))
-      .withLogConsumer(COMPOSE_SERVICENAME_SERVICE, new Slf4jLogConsumer(LOG));
-
   @Test
   public void checkCorsHeader() {
-    String serviceHost = ENVIRONMENT.getServiceHost("service", SERVICE_PORT);
-    Integer servicePort = ENVIRONMENT.getServicePort("service", SERVICE_PORT);
+    String serviceHost = SERVICE.getContainerIpAddress();
+    Integer servicePort = SERVICE.getFirstMappedPort();
 
-    RestAssured.given()
-        .header("ORIGIN", serviceHost + ":" + servicePort)
+    RequestSpecification requestSpecification = new RequestSpecBuilder()
+        .setPort(servicePort)
+        .setBasePath("todo-list-service")
+        .addHeader("ORIGIN", serviceHost + ":" + servicePort)
+        .build();
+
+    RestAssured.given(requestSpecification)
         .when()
-        .options(UriBuilder.fromPath("todo-list-service")
-                     .path("api")
-                     .path("todos")
-                     .scheme("http")
-                     .host(serviceHost)
-                     .port(servicePort)
-                     .build())
+        .options("/api/todos")
         .then()
         .statusCode(Response.Status.OK.getStatusCode())
         .header("Access-Control-Allow-Credentials", "true")
         .header("Access-Control-Allow-Origin", Matchers.notNullValue())
-        .header(HttpHeaders.ALLOW, "DELETE,POST,GET,PUT,OPTIONS,HEAD");
+        .header(HttpHeaders.ALLOW, "DELETE,POST,GET,PUT,OPTIONS,HEAD")
+        .log().ifValidationFails(LogDetail.ALL);
   }
 }

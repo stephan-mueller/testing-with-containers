@@ -15,10 +15,7 @@
  */
 package de.openknowledge.projects.todolist.gateway.application;
 
-import static de.openknowledge.projects.todolist.gateway.GatewayContainer.ENV_SERVICE_HOST;
-import static de.openknowledge.projects.todolist.gateway.GatewayContainer.ENV_SERVICE_PORT;
-
-import de.openknowledge.projects.todolist.gateway.GatewayContainer;
+import de.openknowledge.projects.todolist.gateway.AbstractIntegrationTest;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,24 +28,16 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.JsonBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MockServerContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.net.URI;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
 
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.module.jsv.JsonSchemaValidator;
+import io.restassured.specification.RequestSpecification;
 
 /**
  * Integration test class for the resource {@link TodoGatewayResource}.
@@ -57,85 +46,29 @@ import io.restassured.module.jsv.JsonSchemaValidator;
  * EXERCISE 6: TodoGatewayResource integration test with Mockserver (JUnit 5)
  *
  * HOWTO:
- * 1. add @Testcontainers annotation to test class
- * 2. add Network to link the two testcontainers
- * 3. add MockServerContainer
- * 4. add GenericContainer with todo-list-gateway image
+ * 1. add Network to link the two testcontainers
+ * 2. add MockServerContainer
+ * 3. add GenericContainer with todo-list-gateway image
+ * 4. start MockServerContainer and GatewayContainer manually
  * 5. get host and port from gateway container
  */
-@Testcontainers
-public class TodoGatewayResourceIT {
+public class TodoGatewayResourceIT extends AbstractIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TodoGatewayResourceIT.class);
 
-  private static final String MOCKSERVER_NETWORK_ALIAS = "mockserver";
-  private static final Integer MOCKSERVER_EXPOSED_PORT = 1080;
+  private static RequestSpecification requestSpecification;
 
   /**
    * HOWTO:
-   * 2. add Network to link the two testcontainers
-   */
-  private static final Network NETWORK = Network.newNetwork();
-
-  /**
-   * 3. add MockServerContainer
-   * - add @Container annotation
-   * - instantiate MockServerContainer
-   * - set network
-   * - add network alias "mockserver"
-   * - add log consumer to receive container logs
-   */
-  @Container
-  private static final MockServerContainer MOCKSERVER = new MockServerContainer()
-      .withNetwork(NETWORK)
-      .withNetworkAliases(MOCKSERVER_NETWORK_ALIAS)
-      .withLogConsumer(new Slf4jLogConsumer(LOG));
-
-  /**
-   * 4. add GenericContainer with todo-list-gateway image
-   * - add @Container annotation
-   * - instantiate GenericContainer with todo-list-gateway image
-   * - set depends on MockServerContainer
-   * - set network
-   * - set environment variables "SERVICE_HOST" and "SERVICE_PORT" for todo-list-service client (makes http calls to MockServer)
-   * - add log consumer to receive container logs
-   *
-   * @see GatewayContainer
-   *
-   * HINT 1: use service image "testing-with-containers/todo-list-gateway:0" (requires to run "mvn clean package" before)
-   * HINT 2: use "SERVICE_HOST" = "mockserver", "SERVICE_PORT" = "1080" as environment settings
-   */
-  @Container
-  private static final GenericContainer<?> GATEWAY = GatewayContainer.newContainer()
-      .dependsOn(MOCKSERVER)
-      .withNetwork(NETWORK)
-      .withEnv(ENV_SERVICE_HOST, MOCKSERVER_NETWORK_ALIAS)
-      .withEnv(ENV_SERVICE_PORT, MOCKSERVER_EXPOSED_PORT.toString())
-      .withLogConsumer(new Slf4jLogConsumer(LOG));
-
-  private static URI uri;
-
-  /**
-   * HOWTO:
-   * 5. get host and port from gateway container
-   * - set host to container ip address
+   * 5. get port from gateway container
    * - set port to container mapped port
    */
   @BeforeAll
-  public static void setUpUri() {
-    uri = UriBuilder.fromPath("todo-list-gateway")
-        .scheme("http")
-        .host(GATEWAY.getContainerIpAddress())
-        .port(GATEWAY.getFirstMappedPort())
+  public static void setUpRequestSpecification() {
+    requestSpecification = new RequestSpecBuilder()
+        .setPort(GATEWAY.getFirstMappedPort())
+        .setBasePath("todo-list-gateway")
         .build();
-  }
-
-  private URI getListUri() {
-    return UriBuilder.fromUri(uri).path("api").path("todos").build();
-  }
-
-  private URI getSingleItemUri(final Long todoId) {
-    return UriBuilder.fromUri(getListUri()).path("{id}").build(todoId);
   }
 
   @Test
@@ -163,7 +96,7 @@ public class TodoGatewayResourceIT {
                                              + "  \"done\": false" + System.lineSeparator()
                                              + "}")));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{\n"
@@ -173,7 +106,7 @@ public class TodoGatewayResourceIT {
               + "  \"done\": false\n"
               + "}")
         .when()
-        .post(getListUri())
+        .post("/api/todos")
         .then()
         .statusCode(Status.CREATED.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
@@ -182,7 +115,8 @@ public class TodoGatewayResourceIT {
         .body("title", Matchers.equalTo("clean fridge"))
         .body("description", Matchers.equalTo("It's a mess"))
         .body("dueDate", Matchers.notNullValue())
-        .body("done", Matchers.equalTo(false));
+        .body("done", Matchers.equalTo(false))
+        .log().ifValidationFails();
   }
 
   @Test
@@ -213,18 +147,19 @@ public class TodoGatewayResourceIT {
                                              + "    \"uuid\": \"a0f68294-14b8-4011-b613-79eb90cef3e0\"" + System.lineSeparator()
                                              + "}")));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{}")
         .when()
-        .post(getListUri())
+        .post("/api/todos")
         .then()
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
-        .body("size()", Matchers.is(2));
+        .body("size()", Matchers.is(2))
+        .log().ifValidationFails();
   }
 
   @Test
@@ -236,12 +171,14 @@ public class TodoGatewayResourceIT {
         .respond(HttpResponse.response()
                      .withStatusCode(Status.NO_CONTENT.getStatusCode()));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", 1L)
         .when()
-        .delete(getSingleItemUri(1L))
+        .delete("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NO_CONTENT.getStatusCode());
+        .statusCode(Status.NO_CONTENT.getStatusCode())
+        .log().ifValidationFails();
   }
 
   @Test
@@ -253,12 +190,14 @@ public class TodoGatewayResourceIT {
         .respond(HttpResponse.response()
                      .withStatusCode(Status.NOT_FOUND.getStatusCode()));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", 999L)
         .when()
-        .delete(getSingleItemUri(999L))
+        .delete("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+        .statusCode(Status.NOT_FOUND.getStatusCode())
+        .log().ifValidationFails();
   }
 
   @Test
@@ -278,10 +217,11 @@ public class TodoGatewayResourceIT {
                                              + "  \"done\": false" + System.lineSeparator()
                                              + "}")));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", 1L)
         .when()
-        .get(getSingleItemUri(1L))
+        .get("/api/todos/{todoId}")
         .then()
         .statusCode(Status.OK.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
@@ -290,7 +230,8 @@ public class TodoGatewayResourceIT {
         .body("title", Matchers.equalTo("clean fridge"))
         .body("description", Matchers.equalTo("It's a mess"))
         .body("dueDate", Matchers.notNullValue())
-        .body("done", Matchers.equalTo(false));
+        .body("done", Matchers.equalTo(false))
+        .log().ifValidationFails();
   }
 
   @Test
@@ -302,12 +243,14 @@ public class TodoGatewayResourceIT {
         .respond(HttpResponse.response()
                      .withStatusCode(Status.NOT_FOUND.getStatusCode()));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", 999L)
         .when()
-        .get(getSingleItemUri(999L))
+        .get("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+        .statusCode(Status.NOT_FOUND.getStatusCode())
+        .log().ifValidationFails();
   }
 
   @Test
@@ -335,15 +278,16 @@ public class TodoGatewayResourceIT {
                                              + "  }" + System.lineSeparator()
                                              + "]")));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .when()
-        .get(getListUri())
+        .get("/api/todos")
         .then()
         .statusCode(Status.OK.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/Todos-schema.json"))
-        .body("size()", Matchers.is(2));
+        .body("size()", Matchers.is(2))
+        .log().ifValidationFails();
   }
 
   @Test
@@ -364,9 +308,10 @@ public class TodoGatewayResourceIT {
         .respond(HttpResponse.response()
                      .withStatusCode(Status.NO_CONTENT.getStatusCode()));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", 2L)
         .body("{\n"
               + "  \"title\": \"clean bathroom\",\n"
               + "  \"description\": \"It's really dirty :(\",\n"
@@ -374,9 +319,10 @@ public class TodoGatewayResourceIT {
               + "  \"done\": true\n"
               + "}")
         .when()
-        .put(getSingleItemUri(2L))
+        .put("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NO_CONTENT.getStatusCode());
+        .statusCode(Status.NO_CONTENT.getStatusCode())
+        .log().ifValidationFails();
   }
 
   @Test
@@ -407,19 +353,20 @@ public class TodoGatewayResourceIT {
                                              + "    \"uuid\": \"a0f68294-14b8-4011-b613-79eb90cef3e0\"" + System.lineSeparator()
                                              + "}")));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", 1L)
         .body("{}")
         .when()
-        .put(getSingleItemUri(1L))
+        .put("/api/todos/{todoId}")
         .then()
         .statusCode(Status.BAD_REQUEST.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
         .body(JsonSchemaValidator.matchesJsonSchemaInClasspath("schema/ErrorResponses-schema.json"))
         .rootPath("'errors'")
         .body("size()", Matchers.is(2))
-    ;
+        .log().ifValidationFails();
   }
 
   @Test
@@ -440,9 +387,10 @@ public class TodoGatewayResourceIT {
         .respond(HttpResponse.response()
                      .withStatusCode(Status.NOT_FOUND.getStatusCode()));
 
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
+        .pathParam("todoId", 999L)
         .body("{\n"
               + "  \"title\": \"clean bathroom\",\n"
               + "  \"description\": \"It's really dirty :(\",\n"
@@ -450,8 +398,9 @@ public class TodoGatewayResourceIT {
               + "  \"done\": true\n"
               + "}")
         .when()
-        .put(getSingleItemUri(999L))
+        .put("/api/todos/{todoId}")
         .then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+        .statusCode(Status.NOT_FOUND.getStatusCode())
+        .log().ifValidationFails();
   }
 }
