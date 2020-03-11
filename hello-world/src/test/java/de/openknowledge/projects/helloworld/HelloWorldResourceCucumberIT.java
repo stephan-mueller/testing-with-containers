@@ -33,7 +33,7 @@ import io.cucumber.junit.CucumberOptions;
  * 1. prepare Dockerfile
  * 2. add Generic Container with ImageFromDockerfile
  * 3. call start/stop
- * 4. get host and port from container
+ * 4. get port from container
  *
  * @see HelloWorldResourceCucumberSteps
  *

@@ -21,8 +21,6 @@ import org.testcontainers.images.builder.ImageFromDockerfile;
 import java.io.File;
 import java.net.URI;
 
-import javax.ws.rs.core.UriBuilder;
-
 import cucumber.api.event.ConcurrentEventListener;
 import cucumber.api.event.EventHandler;
 import cucumber.api.event.EventPublisher;
@@ -59,7 +57,6 @@ public class HelloWorldResourceCucumberTestContainerBaseClass implements Concurr
 
   private EventHandler<TestRunStarted> setup = event -> {
     beforeAll();
-    setUpUri();
   };
 
   /**
@@ -69,20 +66,6 @@ public class HelloWorldResourceCucumberTestContainerBaseClass implements Concurr
    */
   private void beforeAll() {
     CONTAINER.start();
-  }
-
-  /**
-   * HOWTO:
-   * 4. get host and port from container
-   * - set host to container ip address
-   * - set port to container mapped port
-   */
-  private void setUpUri() {
-    uri = UriBuilder.fromPath("hello-world")
-        .scheme("http")
-        .host(CONTAINER.getContainerIpAddress())
-        .port(CONTAINER.getFirstMappedPort())
-        .build();
   }
 
   private EventHandler<TestRunFinished> teardown = event -> afterAll();
@@ -96,8 +79,8 @@ public class HelloWorldResourceCucumberTestContainerBaseClass implements Concurr
     CONTAINER.stop();
   }
 
-  public static URI getUri() {
-    return uri;
+  public static GenericContainer<?> getContainer() {
+    return CONTAINER;
   }
 }
 

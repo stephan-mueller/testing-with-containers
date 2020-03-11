@@ -27,13 +27,13 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
-import java.net.URI;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
 
 /**
  * Integration test for the resource {@link HelloWorldResource}.
@@ -45,7 +45,7 @@ import io.restassured.RestAssured;
  * 1. add @Testcontainers annotation to test class
  * 2. add Generic Container with ImageFromDockerfile & use DockerfileBuilder
  * 3. add log consumer to receive container logs
- * 4. get host and port from container
+ * 4. get port from container
  */
 @Testcontainers
 public class HelloWorldResourceIT {
@@ -80,29 +80,27 @@ public class HelloWorldResourceIT {
       .withExposedPorts(9080)
       .withLogConsumer(new Slf4jLogConsumer(LOG));
 
-  private static URI uri;
+  private static RequestSpecification requestSpecification;
 
   /*
    * HOWTO:
-   * 4. get host and port from container
-   * - set host to container ip address
+   * 4. get port from container
    * - set port to container mapped port
    */
   @BeforeAll
   public static void setUpUri() {
-    uri = UriBuilder.fromPath("hello-world")
-        .scheme("http")
-        .host(CONTAINER.getContainerIpAddress())
-        .port(CONTAINER.getFirstMappedPort())
+    requestSpecification = new RequestSpecBuilder()
+        .setPort(CONTAINER.getFirstMappedPort())
+        .setBasePath("hello-world")
         .build();
   }
 
   @Test
   public void sayHello() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.TEXT_PLAIN)
         .when()
-        .get(UriBuilder.fromUri(uri).path("api").path("hello").build())
+        .get("/api/hello")
         .then()
         .statusCode(Response.Status.OK.getStatusCode())
         .contentType(MediaType.TEXT_PLAIN)
@@ -111,10 +109,11 @@ public class HelloWorldResourceIT {
 
   @Test
   public void sayHelloWorld() {
-    RestAssured.given()
+    RestAssured.given(requestSpecification)
         .accept(MediaType.TEXT_PLAIN)
+        .pathParam("name", "Stephan")
         .when()
-        .get(UriBuilder.fromUri(uri).path("api").path("hello").path("Stephan").build())
+        .get("/api/hello/{name}")
         .then()
         .statusCode(Response.Status.OK.getStatusCode())
         .contentType(MediaType.TEXT_PLAIN)

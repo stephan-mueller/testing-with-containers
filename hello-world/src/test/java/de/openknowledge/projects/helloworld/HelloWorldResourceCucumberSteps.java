@@ -17,37 +17,44 @@ package de.openknowledge.projects.helloworld;
 
 import org.hamcrest.Matchers;
 
-import java.net.URI;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
 
 /**
  * Step Definitions for the cucumber test {@link HelloWorldResourceCucumberIT}.
  */
 public class HelloWorldResourceCucumberSteps {
 
-  private URI uri;
+  private RequestSpecification requestSpecification;
 
   private String name;
 
   private io.restassured.response.Response response;
 
+  /**
+   * HOWTO:
+   * 4. get port from container
+   * - set port to container mapped port
+   */
   @Before
   public void beforeScenario() {
-    uri = HelloWorldResourceCucumberTestContainerBaseClass.getUri();
+    requestSpecification = new RequestSpecBuilder()
+        .setPort(HelloWorldResourceCucumberTestContainerBaseClass.getContainer().getFirstMappedPort())
+        .setBasePath("hello-world")
+        .build();
   }
 
   @Given("^a user$")
   public void given_a_user() {
-    this.name = name;
+    this.name = "";
   }
 
   @Given("^a user with name \"([^\"]*)\"$")
@@ -57,18 +64,19 @@ public class HelloWorldResourceCucumberSteps {
 
   @When("the user calls the service")
   public void when_the_user_calls_the_service() {
-    response = RestAssured.given()
+    response = RestAssured.given(requestSpecification)
         .accept(MediaType.TEXT_PLAIN)
         .when()
-        .get(UriBuilder.fromUri(uri).path("api").path("hello").build());
+        .get("/api/hello");
   }
 
   @When("^the user calls the service with his name$")
   public void when_the_user_calls_the_service_with_his_name() {
-    response = RestAssured.given()
+    response = RestAssured.given(requestSpecification)
         .accept(MediaType.TEXT_PLAIN)
+        .pathParam("name", name)
         .when()
-        .get(UriBuilder.fromUri(uri).path("api").path("hello").path(name).build());
+        .get("/api/hello/{name}");
   }
 
   @Then("the response is \"([^\"]*)\"$")
