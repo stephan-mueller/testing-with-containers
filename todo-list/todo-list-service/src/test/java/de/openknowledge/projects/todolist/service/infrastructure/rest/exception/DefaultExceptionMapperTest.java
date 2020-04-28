@@ -23,7 +23,13 @@ import de.openknowledge.projects.todolist.service.infrastructure.domain.error.Er
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.BadRequestException;
@@ -33,22 +39,26 @@ import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
  * Test class for the exception mapper {@link DefaultExceptionMapper}.
  */
+@ExtendWith(MockitoExtension.class)
 public class DefaultExceptionMapperTest {
 
+  @InjectMocks
   private DefaultExceptionMapper exceptionMapper;
 
-  @BeforeEach
-  public void setUp() {
-    exceptionMapper = new DefaultExceptionMapper();
-  }
+  @Mock
+  private HttpHeaders headers;
 
   @Test
   public void toResponseShouldReturn400ForBadRequestException() {
+    Mockito.doReturn(Arrays.asList(MediaType.APPLICATION_JSON_TYPE)).when(headers).getAcceptableMediaTypes();
+
     Response response = exceptionMapper.toResponse(new BadRequestException("Illegal Argument"));
     assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
     assertThat(response.hasEntity()).isTrue();
@@ -88,6 +98,8 @@ public class DefaultExceptionMapperTest {
 
   @Test
   public void toResponseShouldReturn500ForIllegalStateException() {
+    Mockito.doReturn(Arrays.asList(MediaType.APPLICATION_JSON_TYPE)).when(headers).getAcceptableMediaTypes();
+
     Response response = exceptionMapper.toResponse(new IllegalStateException("Illegal state occurred"));
     assertThat(response.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     assertThat(response.hasEntity()).isTrue();
@@ -101,6 +113,8 @@ public class DefaultExceptionMapperTest {
 
   @Test
   public void toResponseShouldReturn500ForWebApplicationExceptionWithStatusCode500() {
+    Mockito.doReturn(Arrays.asList(MediaType.APPLICATION_JSON_TYPE)).when(headers).getAcceptableMediaTypes();
+
     Response response = exceptionMapper.toResponse(new InternalServerErrorException("Internal error"));
     assertThat(response.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     assertThat(response.hasEntity()).isTrue();
@@ -114,6 +128,8 @@ public class DefaultExceptionMapperTest {
 
   @Test
   public void toResponseShouldReturn500ForWebApplicationExceptionWithStatusCode501() {
+    Mockito.doReturn(Arrays.asList(MediaType.APPLICATION_JSON_TYPE)).when(headers).getAcceptableMediaTypes();
+
     Response response = exceptionMapper.toResponse(new WebApplicationException(Response.Status.NOT_IMPLEMENTED.getStatusCode()));
     assertThat(response.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     assertThat(response.hasEntity()).isTrue();
@@ -127,6 +143,8 @@ public class DefaultExceptionMapperTest {
 
   @Test
   public void toResponseShouldReturn500ForWebApplicationExceptionWithStatusCode502() {
+    Mockito.doReturn(Arrays.asList(MediaType.APPLICATION_JSON_TYPE)).when(headers).getAcceptableMediaTypes();
+
     Response response = exceptionMapper.toResponse(new WebApplicationException(Response.Status.BAD_GATEWAY.getStatusCode()));
     assertThat(response.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     assertThat(response.hasEntity()).isTrue();
@@ -140,6 +158,8 @@ public class DefaultExceptionMapperTest {
 
   @Test
   public void toResponseShouldReturn500ForWebApplicationExceptionWithStatusCode503() {
+    Mockito.doReturn(Arrays.asList(MediaType.APPLICATION_JSON_TYPE)).when(headers).getAcceptableMediaTypes();
+
     Response response = exceptionMapper.toResponse(new ServiceUnavailableException());
     assertThat(response.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     assertThat(response.hasEntity()).isTrue();
@@ -153,6 +173,8 @@ public class DefaultExceptionMapperTest {
 
   @Test
   public void toResponseShouldReturn500ForWebApplicationExceptionWithStatusCode504() {
+    Mockito.doReturn(Arrays.asList(MediaType.APPLICATION_JSON_TYPE)).when(headers).getAcceptableMediaTypes();
+
     Response response = exceptionMapper.toResponse(new WebApplicationException(Response.Status.GATEWAY_TIMEOUT.getStatusCode()));
     assertThat(response.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     assertThat(response.hasEntity()).isTrue();

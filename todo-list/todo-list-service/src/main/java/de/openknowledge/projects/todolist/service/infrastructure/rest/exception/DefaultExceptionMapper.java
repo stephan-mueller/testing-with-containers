@@ -29,6 +29,9 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -39,19 +42,21 @@ import javax.ws.rs.ext.Provider;
  * Default exception mapper. Handles all uncaught exceptions. Prevents leaking internal details to the client.
  */
 @Provider
+@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class DefaultExceptionMapper implements ExceptionMapper<Throwable> {
 
   private static final Logger LOG = LoggerFactory.getLogger(DefaultExceptionMapper.class);
 
+  @Context
+  private HttpHeaders headers;
+
   @Override
   public Response toResponse(final Throwable throwable) {
-    LOG.debug(throwable.getMessage(), throwable);
-
     if (throwable instanceof BadRequestException) {
       LOG.warn(throwable.getMessage(), throwable);
       List<ErrorDTO> errors = Collections.singletonList(new ErrorDTO(() -> "UNKNOWN", throwable.getMessage()));
       return Response.status(((BadRequestException) throwable).getResponse().getStatus())
-          .type(MediaType.APPLICATION_JSON_TYPE)
+          .type(getMediaType())
           .entity(new ApplicationErrorsDTO(errors))
           .build();
     }
@@ -76,8 +81,13 @@ public class DefaultExceptionMapper implements ExceptionMapper<Throwable> {
     LOG.error(String.format("An unknown error occurred (%s)", error.getUuid()), throwable);
 
     return Response.status(Status.INTERNAL_SERVER_ERROR)
-        .type(MediaType.APPLICATION_JSON_TYPE)
+        .type(getMediaType())
         .entity(error)
         .build();
+  }
+
+  private MediaType getMediaType() {
+    MediaType acceptedMediaType = headers.getAcceptableMediaTypes().get(0);
+    return MediaType.WILDCARD.equals(acceptedMediaType.toString()) ? MediaType.APPLICATION_JSON_TYPE : acceptedMediaType;
   }
 }

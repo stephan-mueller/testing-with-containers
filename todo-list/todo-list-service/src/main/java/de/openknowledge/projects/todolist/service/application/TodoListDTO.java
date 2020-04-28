@@ -19,27 +19,38 @@ import static org.apache.commons.lang3.Validate.notNull;
 
 import de.openknowledge.projects.todolist.service.domain.Todo;
 import de.openknowledge.projects.todolist.service.infrastructure.domain.value.AbstractValueObject;
+import de.openknowledge.projects.todolist.service.infrastructure.rest.xml.OffsetDateTimeAdapter;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.time.OffsetDateTime;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
 /**
  * A DTO that represents a {@link Todo} in a list.
  */
 @Schema
+@XmlRootElement
 public class TodoListDTO extends AbstractValueObject {
 
   @Schema(example = "1000")
+  @XmlElement
   private Long id;
 
   @Schema(example = "clean fridge")
+  @XmlElement
   private String title;
 
   @Schema(example = "2018-01-01T12:34:56.000Z")
+  @XmlElement
+  @XmlJavaTypeAdapter(OffsetDateTimeAdapter.class)
   private OffsetDateTime dueDate;
 
   @Schema(example = "false")
+  @XmlElement
   private Boolean done;
 
   public TodoListDTO() {

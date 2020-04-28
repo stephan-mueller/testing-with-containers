@@ -18,6 +18,7 @@ package de.openknowledge.projects.todolist.service.infrastructure.domain.error;
 import static org.apache.commons.lang3.Validate.notNull;
 
 import de.openknowledge.projects.todolist.service.infrastructure.domain.value.AbstractValueObject;
+import de.openknowledge.projects.todolist.service.infrastructure.rest.xml.OffsetDateTimeAdapter;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -27,18 +28,27 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
 /**
  * A DTO that represents a list of errors.
  */
 @Schema
+@XmlRootElement
 public class ApplicationErrorsDTO extends AbstractValueObject implements ErrorDetails {
 
   @Schema(example = "55e6e986-767b-433a-9544-ddc8e25d67ab")
+  @XmlElement
   private String uuid;
 
   @Schema(example = "2019-07-01T12:34:56.789+02:00")
+  @XmlElement
+  @XmlJavaTypeAdapter(OffsetDateTimeAdapter.class)
   private OffsetDateTime timestamp;
 
+  @XmlElement
   private List<ErrorDTO> errors;
 
   public ApplicationErrorsDTO() {

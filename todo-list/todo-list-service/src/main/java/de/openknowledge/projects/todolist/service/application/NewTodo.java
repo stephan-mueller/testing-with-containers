@@ -18,10 +18,16 @@ package de.openknowledge.projects.todolist.service.application;
 import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * A DTO that represents a new {@link Todo}.
  */
 @Schema
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class NewTodo extends AbstractTodo {
 
   public NewTodo() {

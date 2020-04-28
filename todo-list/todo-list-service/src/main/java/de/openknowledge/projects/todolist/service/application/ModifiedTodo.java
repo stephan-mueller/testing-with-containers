@@ -17,10 +17,16 @@ package de.openknowledge.projects.todolist.service.application;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * A DTO that represents a modified {@link Todo}.
  */
 @Schema
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ModifiedTodo extends AbstractTodo {
 
   public ModifiedTodo() {

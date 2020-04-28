@@ -20,15 +20,19 @@ import de.openknowledge.projects.todolist.service.domain.Todo;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import javax.json.bind.annotation.JsonbNillable;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * A DTO that represents a full {@link Todo}.
  */
 @Schema
 @JsonbNillable
+@XmlRootElement
 public class TodoFullDTO extends TodoListDTO {
 
   @Schema(example = "It's a mess")
+  @XmlElement
   private String description;
 
   public TodoFullDTO() {

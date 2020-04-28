@@ -21,6 +21,8 @@ import de.openknowledge.projects.todolist.service.infrastructure.domain.value.Ab
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+import javax.xml.bind.annotation.XmlElement;
+
 /**
  * A DTO that represents a basic error.
  */
@@ -28,13 +30,19 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 public class ErrorDTO extends AbstractValueObject {
 
   @Schema(example = "UNKNOWN_ERROR")
+  @XmlElement
   private String code;
 
   @Schema(example = "An unknown error occurred")
+  @XmlElement
   private String message;
 
-  public ErrorDTO(final ErrorCode error, final String message) {
+  public ErrorDTO() {
     super();
+  }
+
+  public ErrorDTO(final ErrorCode error, final String message) {
+    this();
     this.code = notNull(error, "errorCode must not be null").getErrorCode();
     this.message = notNull(message, "message must not be null");
   }

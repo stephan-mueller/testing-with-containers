@@ -20,17 +20,27 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * A DTO that represents an error with unique id.
  */
 @Schema
+@XmlRootElement
 public class ApplicationErrorDTO extends ErrorDTO implements ErrorDetails {
 
   @Schema(example = "55e6e986-767b-433a-9544-ddc8e25d67ab")
+  @XmlElement
   private String uuid;
 
   @Schema(example = "2019-07-01T12:34:56.789+02:00")
+  @XmlElement
   private OffsetDateTime timestamp;
+
+  public ApplicationErrorDTO() {
+    super();
+  }
 
   public ApplicationErrorDTO(final ErrorCode error, final String message) {
     super(error, message);

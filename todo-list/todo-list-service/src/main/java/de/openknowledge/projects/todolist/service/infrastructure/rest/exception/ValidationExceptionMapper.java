@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolationException;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -36,6 +37,7 @@ import javax.ws.rs.ext.Provider;
  * @see ConstraintViolationException
  */
 @Provider
+@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class ValidationExceptionMapper implements ExceptionMapper<ConstraintViolationException> {
 
   private static final Logger LOG = LoggerFactory.getLogger(ValidationExceptionMapper.class);
@@ -52,7 +54,6 @@ public class ValidationExceptionMapper implements ExceptionMapper<ConstraintViol
     LOG.warn("Validation failed. {} constraint violation(s) occurred.", errors.size());
 
     return Response.status(Response.Status.BAD_REQUEST)
-        .type(MediaType.APPLICATION_JSON_TYPE)
         .entity(new ApplicationErrorsDTO(errors))
         .build();
   }
