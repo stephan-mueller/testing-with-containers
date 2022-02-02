@@ -27,7 +27,7 @@
         <version.microprofile>3.2</version.microprofile>
         <version.microprofile-ext>1.0.5</version.microprofile-ext>
 
-        <version.postgresql>42.2.10</version.postgresql>
+        <version.postgresql>42.2.25</version.postgresql>
 
         <version.apache_commons-lang>3.6</version.apache_commons-lang>
 
